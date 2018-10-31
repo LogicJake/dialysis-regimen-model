@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-10-31 17:20:48
+# @Last Modified time: 2018-10-31 17:30:47
 from loss_history import LossHistory
 import numpy as np
 import pandas as pd
@@ -194,6 +194,6 @@ class MainModel(object):
 
 
 if __name__ == '__main__':
-    model = MainModel('temp/transformed_dataset/final.csv')
+    model = MainModel('transformed_dataset/final.csv')
     model.train()
     # model_big.predict(True)

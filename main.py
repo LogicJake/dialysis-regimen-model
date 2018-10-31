@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:24
-# @Last Modified time: 2018-10-31 17:13:41
+# @Last Modified time: 2018-10-31 17:30:53
 import preprocessing
 import model_main
 import os
@@ -20,5 +20,5 @@ if __name__ == '__main__':
     # preprocessing = Preprocessing('dataset/input.csv', 'dataset/output.csv')
     # preprocessing.reformat()
 
-    main_model = model_main.MainModel('temp/transformed_dataset/final.csv')
+    main_model = model_main.MainModel('transformed_dataset/final.csv')
     main_model.train()

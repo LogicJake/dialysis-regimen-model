@@ -8,7 +8,7 @@ import numpy as np
 
 
 def create_dir():
-    tmp_dir = 'temp/transformed_dataset'
+    tmp_dir = 'transformed_dataset'
     if not os.path.exists(tmp_dir):
         os.makedirs(tmp_dir)
 
@@ -81,7 +81,7 @@ class Preprocessing(object):
                 lambda row: 1 if type(row['complication']) == str and c in row['complication'] else 0, axis=1)
 
         df = df.drop(['complication'], axis=1)
-        df.to_csv('temp/transformed_dataset/input.csv')
+        df.to_csv('transformed_dataset/input.csv')
 
         return df
 
@@ -93,7 +93,7 @@ class Preprocessing(object):
 
         # first try: don not include flow in output
         df = df.drop(columns=['flow'])
-        df.to_csv('temp/transformed_dataset/output.csv')
+        df.to_csv('transformed_dataset/output.csv')
         return df
 
     def reformat(self):
@@ -105,7 +105,7 @@ class Preprocessing(object):
         df_concat = df_concat.dropna()
         df_concat = df_concat.drop(columns=['id'])
 
-        df_concat.to_csv('temp/transformed_dataset/final.csv', index=False)
+        df_concat.to_csv('transformed_dataset/final.csv', index=False)
 
 
 if __name__ == '__main__':
