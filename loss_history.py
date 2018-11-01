@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-31 10:45:22
-# @Last Modified time: 2018-10-31 17:22:23
+# @Last Modified time: 2018-11-01 09:38:47
 # 写一个LossHistory类，保存loss和acc
 
 import keras
@@ -99,6 +99,6 @@ class LossHistory(keras.callbacks.Callback):
                      loss_type], label='anti_add acc')
             plt.grid(True)
             plt.xlabel(loss_type)
-            plt.ylabel('loss')
+            plt.ylabel('acc')
             plt.legend(loc="upper right")
         plt.savefig('result/loss-acc.png')

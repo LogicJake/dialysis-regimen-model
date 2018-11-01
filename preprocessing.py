@@ -81,7 +81,7 @@ class Preprocessing(object):
                 lambda row: 1 if type(row['complication']) == str and c in row['complication'] else 0, axis=1)
 
         df = df.drop(['complication'], axis=1)
-        df.to_csv('transformed_dataset/input.csv')
+        df.to_csv('transformed_dataset/input.csv', index=False)
 
         return df
 
@@ -93,7 +93,7 @@ class Preprocessing(object):
 
         # first try: don not include flow in output
         df = df.drop(columns=['flow'])
-        df.to_csv('transformed_dataset/output.csv')
+        df.to_csv('transformed_dataset/output.csv', index=False)
         return df
 
     def reformat(self):
