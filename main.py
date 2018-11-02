@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:24
-# @Last Modified time: 2018-10-31 17:30:53
-import preprocessing
-import model_main
+# @Last Modified time: 2018-11-02 10:40:14
+from preprocessing import Preprocessing
+from model_main import MainModel
 import os
 
 
@@ -17,8 +17,8 @@ def create_dir():
 if __name__ == '__main__':
     create_dir()
 
-    # preprocessing = Preprocessing('dataset/input.csv', 'dataset/output.csv')
-    # preprocessing.reformat()
+    preprocessing = Preprocessing('dataset/input.csv', 'dataset/output.csv')
+    preprocessing.reformat()
 
-    main_model = model_main.MainModel('transformed_dataset/final.csv')
+    main_model = MainModel('transformed_dataset/final.csv')
     main_model.train()

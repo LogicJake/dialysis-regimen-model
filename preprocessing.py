@@ -6,6 +6,9 @@ import os
 import pandas as pd
 import numpy as np
 
+mm_top = 5
+anti_top = 6
+
 
 def create_dir():
     tmp_dir = 'transformed_dataset'
@@ -93,6 +96,22 @@ class Preprocessing(object):
 
         # first try: don not include flow in output
         df = df.drop(columns=['flow'])
+
+        # merge output
+        df['mm'] = df['machine'].str.cat(df['mode'], sep=':')
+        df = df.drop(['machine', 'mode'], axis=1)
+        df['anti_first'] = df['anti_first'].map(lambda x: str(x))
+        df['anti'] = df['anti_type'].str.cat(df['anti_first'], sep=':')
+        df = df.drop(['anti_first', 'anti_type'], axis=1)
+
+        mm_count = df['mm'].value_counts()
+        mm_preserve = mm_count[:mm_top].index.tolist()
+        anti_count = df['anti'].value_counts()
+        anti_preserve = anti_count[:anti_top].index.tolist()
+
+        df['mm'] = df['mm'].map(lambda x: x if x in mm_preserve else 'other')
+        df['anti'] = df['anti'].map(
+            lambda x: x if x in anti_preserve else 'other')
         df.to_csv('transformed_dataset/output.csv', index=False)
         return df
 
