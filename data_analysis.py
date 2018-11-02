@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-01 10:01:08
-# @Last Modified time: 2018-11-01 15:58:42
+# @Last Modified time: 2018-11-02 09:45:32
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+
+mm_top = 5
+anti_top = 6
 
 
 def plot_bar(data, title, xlabel, ylabel='number', path=None):
@@ -44,9 +47,7 @@ def plot_bar(data, title, xlabel, ylabel='number', path=None):
     plt.savefig(path + file_name + '.png')
 
 
-if __name__ == '__main__':
-    df = pd.read_csv('transformed_dataset/output.csv')
-
+def plot_distribution(df):
     mode_count = df['mode'].value_counts()
     machine_count = df['machine'].value_counts()
     anti_type_count = df['anti_type'].value_counts()
@@ -84,3 +85,33 @@ if __name__ == '__main__':
             'anti_type'].value_counts()
         plot_bar(data, 'anti_type distribution under ' +
                  str(anti_first), 'anti_type', path='analysis/anti_type_distribution_under_anti_first')
+
+
+def merge_output(df):
+    df['mm'] = df['machine'].str.cat(df['mode'], sep='+')
+    df = df.drop(['machine', 'mode'], axis=1)
+
+    df['anti_first'] = df['anti_first'].map(lambda x: str(x))
+    df['anti'] = df['anti_type'].str.cat(df['anti_first'], sep=':')
+    df = df.drop(['anti_first', 'anti_type'], axis=1)
+
+    mm_count = df['mm'].value_counts()
+    plot_bar(mm_count, 'mm distribution', xlabel='mm', path=None)
+    total = np.sum(mm_count)
+    mm_preserve = mm_count[:mm_top].index.tolist()
+    mm_count = mm_count / total
+    print(np.sum(mm_count[:mm_top]))
+    print(mm_preserve)
+
+    anti_count = df['anti'].value_counts()
+    plot_bar(anti_count, 'anti distribution', xlabel='anti', path=None)
+    total = np.sum(anti_count)
+    anti_preserve = anti_count[:anti_top].index.tolist()
+    anti_count = anti_count / total
+    print(np.sum(anti_count[:anti_top]))
+    print(anti_preserve)
+
+if __name__ == '__main__':
+    df = pd.read_csv('transformed_dataset/output.csv')
+    # plot_distribution(df)
+    merge_output(df)
