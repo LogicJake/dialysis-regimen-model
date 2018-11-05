@@ -3,8 +3,11 @@
 # @Author  : LogicJake
 # @File    : preprocessing.py
 import os
+from sklearn.model_selection import train_test_split
+
 import pandas as pd
 import numpy as np
+from imblearn.over_sampling import SMOTE
 
 mm_top = 5
 anti_top = 6
@@ -124,8 +127,52 @@ class Preprocessing(object):
         df_concat = df_concat.dropna()
         df_concat = df_concat.drop(columns=['id'])
 
-        df_concat.to_csv('transformed_dataset/final.csv', index=False)
+        df_sample = self.oversample(df_concat.values)
 
+        df_sample.to_csv('transformed_dataset/final.csv',
+                         index=False, header=False)
+
+    def reformat2(self):
+        input_data = self.reformat_input()
+        output_data = self.reformat_output()
+
+        df_concat = pd.merge(input_data, output_data,
+                             how='left', left_on='id', right_on='id')
+        df_concat = df_concat.dropna()
+        df_concat = df_concat.drop(columns=['id'])
+
+        data = df_concat.values
+        X = data[:, :38]
+        Y = data[:, -2]
+
+        X_train, X_test, y_train, y_test = train_test_split(X, Y)
+
+        X_train, y_train = self.oversample2(X_train, y_train)
+
+        return X_train, X_test, y_train, y_test
+
+    def oversample2(self, X_train, y_train):
+        sm = SMOTE(random_state=42)
+        X_1, y_1 = sm.fit_resample(X_train, y_train)
+        y_1 = y_1.reshape((y_1.shape[0], -1))
+
+        return X_1, y_1
+
+    def oversample(self, data):
+        # print(data[1, :])
+        # print(data.shape)
+        X = data[:, :38]
+        Y = data[:, -2]
+
+        sm = SMOTE(random_state=42)
+        X_1, y_1 = sm.fit_resample(X, Y)
+        y_1 = y_1.reshape((y_1.shape[0], -1))
+        print(X_1.shape, y_1.shape)
+        r_data = np.concatenate((X_1, y_1), axis=1)
+
+        # Y = Y.reshape((Y.shape[0], -1))
+        # r_data = np.concatenate((X, Y), axis=1)
+        return pd.DataFrame(r_data)
 
 if __name__ == '__main__':
     preprocessing = Preprocessing('dataset/input.csv', 'dataset/output.csv')

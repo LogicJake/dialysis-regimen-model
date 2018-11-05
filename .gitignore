@@ -8,3 +8,11 @@ __pycache__/
 transformed_dataset/
 
 model/
+
+*.pyc
+
+network\.py
+
+svm\.py
+
+record\.txt
