@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-06 13:04:28
+# @Last Modified time: 2018-11-06 13:10:00
 import warnings
 from loss_history import LossHistory
 import numpy as np
@@ -16,7 +16,6 @@ from keras.models import Sequential
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 import os
-from keras.callbacks import ReduceLROnPlateau
 
 # ignore warnings
 warnings.filterwarnings('ignore')
@@ -51,6 +50,12 @@ class MainModel(object):
                         kernel_initializer='normal', activation='relu'))
 
         model.add(Dense(35, input_dim=input_dim,
+                        kernel_initializer='normal', activation='relu'))
+
+        model.add(Dense(30, input_dim=input_dim,
+                        kernel_initializer='normal', activation='relu'))
+
+        model.add(Dense(30, input_dim=input_dim,
                         kernel_initializer='normal', activation='relu'))
 
         model.add(Dense(30, input_dim=input_dim,
