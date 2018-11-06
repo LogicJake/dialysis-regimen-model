@@ -127,8 +127,13 @@ class Preprocessing(object):
         df_concat = df_concat.dropna()
         df_concat = df_concat.drop(columns=['id'])
 
-        df_sample = self.oversample(df_concat.values)
+        # not sample data to test model
+        df_test = df_concat.sample(frac=0.05, replace=False, axis=0)
+        df_test.to_csv('transformed_dataset/test.csv',
+                       index=False, header=False)
 
+        df_other = df_concat.drop(df_test.index)
+        df_sample = self.oversample(df_other.values)
         df_sample.to_csv('transformed_dataset/final.csv',
                          index=False, header=False)
 
@@ -159,15 +164,12 @@ class Preprocessing(object):
         return X_1, y_1
 
     def oversample(self, data):
-        # print(data[1, :])
-        # print(data.shape)
         X = data[:, :38]
         Y = data[:, -2]
 
         sm = SMOTE(random_state=42)
         X_1, y_1 = sm.fit_resample(X, Y)
         y_1 = y_1.reshape((y_1.shape[0], -1))
-        print(X_1.shape, y_1.shape)
         r_data = np.concatenate((X_1, y_1), axis=1)
 
         # Y = Y.reshape((Y.shape[0], -1))
