@@ -27,7 +27,7 @@ plot = False
 # hyperparameters
 BS = 10000
 learning_rate = 0.01
-EPOCHS = 4000
+EPOCHS = 20000
 decay = 0.006
 
 
@@ -62,7 +62,7 @@ class MainModel(object):
         model.add(Dense(40, input_dim=input_dim,
                         kernel_initializer='normal', activation='relu'))
 
-        model.add(Dropout(0.2))
+        # model.add(Dropout(0.2))
 
         model.add(BatchNormalization())
         model.add(Dense(35, input_dim=input_dim,
