@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-06 14:56:51
+# @Last Modified time: 2018-11-06 15:34:55
 import warnings
 from loss_history import LossHistory
 import numpy as np
@@ -47,19 +47,41 @@ class MainModel(object):
 
         model = Sequential()
         model.add(BatchNormalization(input_shape=(input_dim,), scale=False))
-
         model.add(Dense(35, input_dim=input_dim,
                         kernel_initializer='normal', activation='relu'))
 
+        model.add(BatchNormalization())
+        model.add(Dense(40, input_dim=input_dim,
+                        kernel_initializer='normal', activation='relu'))
+
+        model.add(BatchNormalization())
+        model.add(Dense(45, input_dim=input_dim,
+                        kernel_initializer='normal', activation='relu'))
+
+        model.add(BatchNormalization())
+        model.add(Dense(40, input_dim=input_dim,
+                        kernel_initializer='normal', activation='relu'))
+
+        model.add(BatchNormalization())
+        model.add(Dense(35, input_dim=input_dim,
+                        kernel_initializer='normal', activation='relu'))
+
+        model.add(BatchNormalization())
         model.add(Dense(30, input_dim=input_dim,
                         kernel_initializer='normal', activation='relu'))
 
+        model.add(BatchNormalization())
         model.add(Dense(25, input_dim=input_dim,
                         kernel_initializer='normal', activation='relu'))
 
-        model.add(Dense(15, input_dim=input_dim,
+        model.add(BatchNormalization())
+        model.add(Dense(20, input_dim=input_dim,
                         kernel_initializer='normal', activation='relu'))
 
+        model.add(BatchNormalization())
+        model.add(Dense(15, input_dim=input_dim,
+                        kernel_initializer='normal', activation='relu'))
+        model.add(BatchNormalization())
         model.add(Dense(10, input_dim=input_dim,
                         kernel_initializer='normal', activation='relu'))
 
@@ -191,7 +213,7 @@ class MainModel(object):
         with open(folder + 'labels.txt', 'w') as outfile:
             outfile.write(str(self.label_dict))
         if plot:
-            plot_model(model, to_file=folder + 'model.png')
+            plot_model(model, to_file=folder + 'model.png', show_shapes=True)
 
         best = True
         for file in os.listdir('model'):
