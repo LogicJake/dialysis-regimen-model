@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-05 17:40:32
+# @Last Modified time: 2018-11-06 10:58:26
+import warnings
 from loss_history import LossHistory
 import numpy as np
 import pandas as pd
-from keras.models import Model
-from keras.layers import Input, Dense
+from keras.layers import Dense
 from keras.utils import plot_model
-from keras import regularizers, optimizers
+from keras import optimizers
 from sklearn.model_selection import train_test_split
 from keras.models import load_model
 from keras import backend as K
 from keras.models import Sequential
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
+import os
 
+# ignore warnings
+warnings.filterwarnings('ignore')
 
 seed = 7
 np.random.seed(seed)
@@ -21,7 +26,7 @@ np.random.seed(seed)
 # hyperparameters
 BS = 10000
 learning_rate = 0.001
-EPOCHS = 10000
+EPOCHS = 10
 
 
 class MainModel(object):
@@ -39,6 +44,12 @@ class MainModel(object):
         mm_num = self.label_num['mm']
 
         model = Sequential()
+        model.add(Dense(40, input_dim=input_dim,
+                        kernel_initializer='normal', activation='relu'))
+
+        model.add(Dense(35, input_dim=input_dim,
+                        kernel_initializer='normal', activation='relu'))
+
         model.add(Dense(30, input_dim=input_dim,
                         kernel_initializer='normal', activation='relu'))
 
@@ -54,8 +65,74 @@ class MainModel(object):
         model.add(
             Dense(mm_num, kernel_initializer='random_uniform', activation='sigmoid'))
 
-        plot_model(model, to_file='model/model.png')
         return model
+
+    def train(self):
+        dataframe = pd.read_csv(self.path, header=None, names=['sex', 'age', 'dweight', 'cweight', 'd_0', 'd_1', 'd_2', 'd_3', 'd_4', 'd_5', 'd_6', 'd_7', 'd_8', 'd_9', 'd_10', 'd_11', 'd_12',
+                                                               'd_13', 'd_14', 'd_15', 'd_16', 'c_0', 'c_1', 'c_2', 'c_3', 'c_4', 'c_5', 'c_6', 'c_7', 'c_8', 'c_9', 'c_10', 'c_11', 'c_12', 'c_13', 'c_14', 'c_15', 'c_16', 'mm'])
+
+        X_tranin, Y_tranin, X_test, Y_test = self.split_train_test(dataframe)
+
+        self.X_test = X_test
+        self.Y_test = Y_test
+
+        model = self.build(X_tranin.shape[1])
+
+        # Fit the model
+        sgd = optimizers.Adam(lr=learning_rate, beta_1=0.9,
+                              beta_2=0.999, epsilon=1e-08)
+
+        model.compile(loss='categorical_crossentropy',
+                      optimizer=sgd, metrics=['accuracy'])
+
+        history = LossHistory()
+
+        model.fit(X_tranin, Y_tranin, batch_size=BS,
+                  validation_data=(X_test, Y_test),
+                  epochs=EPOCHS, verbose=1, callbacks=[history])
+
+        self.history = history
+        self.save_model(model)
+
+    def analyse(self):
+        Y_test, Y_predict = self.predict(self.X_test, True)
+
+        folder_name = 'result' + os.path.sep + \
+            str(self.history.acc['epoch'][-1]) + os.path.sep
+        if not os.path.exists(folder_name):
+            os.mkdir(folder_name)
+
+        cm = confusion_matrix(Y_test, Y_predict)
+        np.savetxt(folder_name + 'cm.txt', cm,
+                   fmt=['%s'] * cm.shape[1])
+
+        cr = classification_report(Y_test, Y_predict)
+        with open(folder_name + 'cr.txt', 'w') as outfile:
+            outfile.write(cr)
+        self.history.loss_plot(folder_name, 'epoch')
+
+    def predict(self, X, load):
+        if load:
+            model = load_model('model/model.h5')
+            with open('model/labels.txt', 'r') as f:
+                a = f.read()
+                label_dict = eval(a)
+        else:
+            model = self.model
+            label_dict = self.label_dict
+
+        Y_predict = model.predict(X)
+        return self.number2label(label_dict, self.Y_test[0], 'mm'), self.number2label(label_dict, Y_predict, 'mm')
+
+    def number2label(self, label_dict, aa, label_name):
+        mode_labels = label_dict[label_name]
+
+        res = []
+        for row in aa:
+            labels = row.tolist()
+            res.append(mode_labels[labels.index(max(labels))])
+
+        return res
 
     def label_counter(self, columns, encoded_columns):
         for column in encoded_columns:
@@ -91,7 +168,7 @@ class MainModel(object):
 
         Y = Y.values
 
-        trainX, testX, trainY, testY = train_test_split(X, Y, test_size=0.2)
+        trainX, testX, trainY, testY = train_test_split(X, Y, test_size=0.1)
 
         trainY = self.split_Y(trainY)
         testY = self.split_Y(testY)
@@ -99,63 +176,30 @@ class MainModel(object):
         return trainX, trainY, testX, testY
 
     def save_model(self, model):
+        cur_acc = self.history.acc['epoch'][-1]
+
+        folder = 'model' + os.path.sep + \
+            str(cur_acc) + os.path.sep
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+
         self.model = model
-        model.save('model/model.h5')
-        with open('model/labels' + '.txt', 'w') as outfile:
+        model.save(folder + 'model.h5')
+        with open(folder + 'labels.txt', 'w') as outfile:
             outfile.write(str(self.label_dict))
+        plot_model(model, to_file=folder + 'model.png')
 
-    def train(self):
-        dataframe = pd.read_csv(self.path, header=None, names=['sex', 'age', 'dweight', 'cweight', 'd_0', 'd_1', 'd_2', 'd_3', 'd_4', 'd_5', 'd_6', 'd_7', 'd_8', 'd_9', 'd_10', 'd_11', 'd_12',
-                                                               'd_13', 'd_14', 'd_15', 'd_16', 'c_0', 'c_1', 'c_2', 'c_3', 'c_4', 'c_5', 'c_6', 'c_7', 'c_8', 'c_9', 'c_10', 'c_11', 'c_12', 'c_13', 'c_14', 'c_15', 'c_16', 'mm'])
-
-        X_tranin, Y_tranin, X_test, Y_test = self.split_train_test(dataframe)
-
-        model = self.build(X_tranin.shape[1])
-
-        # Fit the model
-        sgd = optimizers.Adam(lr=learning_rate, beta_1=0.9,
-                              beta_2=0.999, epsilon=1e-08)
-
-        model.compile(loss='categorical_crossentropy',
-                      optimizer=sgd, metrics=['accuracy'])
-
-        history = LossHistory()
-
-        model.fit(X_tranin, Y_tranin, batch_size=BS,
-                  validation_data=(X_test, Y_test),
-                  epochs=EPOCHS, verbose=1, callbacks=[history])
-
-        self.save_model(model)
-
-        # 绘制acc-loss曲线
-        history.loss_plot('epoch')
-
-    def number2label(self, label_dict, aa, label_name):
-        mode_labels = label_dict[label_name]
-
-        labels = aa.tolist()
-        return mode_labels[labels.index(max(labels))]
-
-    def predict(self, load):
-        if load:
-            model = load_model('model/model.h5')
-            with open('labels' + '.txt', 'r') as f:
-                a = f.read()
-                label_dict = eval(a)
-        else:
-            model = self.model
-            label_dict = self.label_dict
-
-        X_predict = np.array([1.0, 52.0, 69.1, 69.7, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                              0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        Y_predict = model.predict(X_predict.reshape((-1, 38)))
-
-        mm = self.number2label(label_dict, Y_predict[0][0], 'mm')
-
-        print('mm:' + mm)
-
-
+        best = True
+        for file in os.listdir('model'):
+            if os.path.isdir('model' + os.path.sep + file):
+                if eval(file) > cur_acc:
+                    best = False
+        if best:
+            model.save('model/model.h5')
+            with open('model/labels.txt', 'w') as outfile:
+                outfile.write(str(self.label_dict))
 if __name__ == '__main__':
     model = MainModel('transformed_dataset/final.csv')
     model.train()
+    model.analyse()
     # model.predict(True)

@@ -11,8 +11,8 @@ model/
 
 *.pyc
 
-network\.py
-
 svm\.py
 
 record\.txt
+
+result/*/
