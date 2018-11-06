@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-06 13:10:00
+# @Last Modified time: 2018-11-06 14:56:51
 import warnings
 from loss_history import LossHistory
 import numpy as np
 import pandas as pd
-from keras.layers import Dense
+from keras.layers import Dense, BatchNormalization
 from keras.utils import plot_model
 from keras import optimizers
 from sklearn.model_selection import train_test_split
@@ -22,11 +22,11 @@ warnings.filterwarnings('ignore')
 
 seed = 7
 np.random.seed(seed)
-plot = False
+plot = True
 
 # hyperparameters
 BS = 10000
-learning_rate = 0.001
+learning_rate = 0.01
 EPOCHS = 1000
 decay = 0.009
 
@@ -46,16 +46,9 @@ class MainModel(object):
         mm_num = self.label_num['mm']
 
         model = Sequential()
-        model.add(Dense(40, input_dim=input_dim,
-                        kernel_initializer='normal', activation='relu'))
+        model.add(BatchNormalization(input_shape=(input_dim,), scale=False))
 
         model.add(Dense(35, input_dim=input_dim,
-                        kernel_initializer='normal', activation='relu'))
-
-        model.add(Dense(30, input_dim=input_dim,
-                        kernel_initializer='normal', activation='relu'))
-
-        model.add(Dense(30, input_dim=input_dim,
                         kernel_initializer='normal', activation='relu'))
 
         model.add(Dense(30, input_dim=input_dim,
