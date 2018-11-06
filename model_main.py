@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-06 12:39:25
+# @Last Modified time: 2018-11-06 13:04:28
 import warnings
 from loss_history import LossHistory
 import numpy as np
@@ -28,8 +28,8 @@ plot = False
 # hyperparameters
 BS = 10000
 learning_rate = 0.001
-EPOCHS = 10
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=10, mode='auto')
+EPOCHS = 1000
+decay = 0.009
 
 
 class MainModel(object):
@@ -82,17 +82,19 @@ class MainModel(object):
         model = self.build(X_tranin.shape[1])
 
         # Fit the model
-        sgd = optimizers.Adam(lr=learning_rate, beta_1=0.9,
-                              beta_2=0.999, epsilon=1e-08)
+        optimizer = optimizers.Adam(lr=learning_rate, beta_1=0.9,
+                                    beta_2=0.999, epsilon=1e-08, decay=decay)
+        # optimizer = optimizers.SGD(
+        #     lr=learning_rate, momentum=0., decay=0., nesterov=False)
 
         model.compile(loss='categorical_crossentropy',
-                      optimizer=sgd, metrics=['accuracy'])
+                      optimizer=optimizer, metrics=['accuracy'])
 
         history = LossHistory()
 
         model.fit(X_tranin, Y_tranin, batch_size=BS,
                   validation_data=(X_test, Y_test),
-                  epochs=EPOCHS, verbose=1, callbacks=[history, reduce_lr])
+                  epochs=EPOCHS, verbose=1, callbacks=[history])
 
         self.history = history
         self.save_model(model)
