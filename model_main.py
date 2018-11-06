@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-06 11:23:16
+# @Last Modified time: 2018-11-06 12:39:25
 import warnings
 from loss_history import LossHistory
 import numpy as np
@@ -16,6 +16,7 @@ from keras.models import Sequential
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 import os
+from keras.callbacks import ReduceLROnPlateau
 
 # ignore warnings
 warnings.filterwarnings('ignore')
@@ -28,6 +29,7 @@ plot = False
 BS = 10000
 learning_rate = 0.001
 EPOCHS = 10
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=10, mode='auto')
 
 
 class MainModel(object):
@@ -90,7 +92,7 @@ class MainModel(object):
 
         model.fit(X_tranin, Y_tranin, batch_size=BS,
                   validation_data=(X_test, Y_test),
-                  epochs=EPOCHS, verbose=1, callbacks=[history])
+                  epochs=EPOCHS, verbose=1, callbacks=[history, reduce_lr])
 
         self.history = history
         self.save_model(model)
