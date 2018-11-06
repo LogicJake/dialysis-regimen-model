@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-06 10:58:26
+# @Last Modified time: 2018-11-06 11:23:16
 import warnings
 from loss_history import LossHistory
 import numpy as np
@@ -22,6 +22,7 @@ warnings.filterwarnings('ignore')
 
 seed = 7
 np.random.seed(seed)
+plot = False
 
 # hyperparameters
 BS = 10000
@@ -109,7 +110,7 @@ class MainModel(object):
         cr = classification_report(Y_test, Y_predict)
         with open(folder_name + 'cr.txt', 'w') as outfile:
             outfile.write(cr)
-        self.history.loss_plot(folder_name, 'epoch')
+        self.history.loss_plot(plot, folder_name, 'epoch')
 
     def predict(self, X, load):
         if load:
@@ -187,7 +188,8 @@ class MainModel(object):
         model.save(folder + 'model.h5')
         with open(folder + 'labels.txt', 'w') as outfile:
             outfile.write(str(self.label_dict))
-        plot_model(model, to_file=folder + 'model.png')
+        if plot:
+            plot_model(model, to_file=folder + 'model.png')
 
         best = True
         for file in os.listdir('model'):
@@ -198,6 +200,8 @@ class MainModel(object):
             model.save('model/model.h5')
             with open('model/labels.txt', 'w') as outfile:
                 outfile.write(str(self.label_dict))
+
+
 if __name__ == '__main__':
     model = MainModel('transformed_dataset/final.csv')
     model.train()
