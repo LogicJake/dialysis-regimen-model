@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-06 15:34:55
+# @Last Modified time: 2018-11-06 15:50:51
 import warnings
 from loss_history import LossHistory
 import numpy as np
@@ -120,7 +120,7 @@ class MainModel(object):
         self.save_model(model)
 
     def analyse(self):
-        Y_test, Y_predict = self.predict(self.X_test, True)
+        Y_test, Y_predict = self.predict(self.X_test, False)
 
         folder_name = 'result' + os.path.sep + \
             str(self.history.acc['epoch'][-1]) + os.path.sep
