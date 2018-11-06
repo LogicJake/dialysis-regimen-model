@@ -22,13 +22,13 @@ warnings.filterwarnings('ignore')
 
 seed = 7
 np.random.seed(seed)
-plot = True
+plot = False
 
 # hyperparameters
 BS = 10000
 learning_rate = 0.01
-EPOCHS = 1000
-decay = 0.009
+EPOCHS = 4000
+decay = 0.006
 
 
 class MainModel(object):
