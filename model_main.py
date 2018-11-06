@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-06 15:50:51
+# @Last Modified time: 2018-11-06 17:13:06
 import warnings
 from loss_history import LossHistory
 import numpy as np
 import pandas as pd
-from keras.layers import Dense, BatchNormalization
+from keras.layers import Dense, BatchNormalization, Dropout
 from keras.utils import plot_model
 from keras import optimizers
 from sklearn.model_selection import train_test_split
@@ -62,6 +62,8 @@ class MainModel(object):
         model.add(Dense(40, input_dim=input_dim,
                         kernel_initializer='normal', activation='relu'))
 
+        model.add(Dropout(0.2))
+
         model.add(BatchNormalization())
         model.add(Dense(35, input_dim=input_dim,
                         kernel_initializer='normal', activation='relu'))
@@ -94,10 +96,7 @@ class MainModel(object):
         dataframe = pd.read_csv(self.path, header=None, names=['sex', 'age', 'dweight', 'cweight', 'd_0', 'd_1', 'd_2', 'd_3', 'd_4', 'd_5', 'd_6', 'd_7', 'd_8', 'd_9', 'd_10', 'd_11', 'd_12',
                                                                'd_13', 'd_14', 'd_15', 'd_16', 'c_0', 'c_1', 'c_2', 'c_3', 'c_4', 'c_5', 'c_6', 'c_7', 'c_8', 'c_9', 'c_10', 'c_11', 'c_12', 'c_13', 'c_14', 'c_15', 'c_16', 'mm'])
 
-        X_tranin, Y_tranin, X_test, Y_test = self.split_train_test(dataframe)
-
-        self.X_test = X_test
-        self.Y_test = Y_test
+        X_tranin, Y_tranin, X_val, Y_val = self.split_train_test(dataframe)
 
         model = self.build(X_tranin.shape[1])
 
@@ -113,14 +112,19 @@ class MainModel(object):
         history = LossHistory()
 
         model.fit(X_tranin, Y_tranin, batch_size=BS,
-                  validation_data=(X_test, Y_test),
+                  validation_data=(X_val, Y_val),
                   epochs=EPOCHS, verbose=1, callbacks=[history])
 
         self.history = history
         self.save_model(model)
 
-    def analyse(self):
-        Y_test, Y_predict = self.predict(self.X_test, False)
+    def analyse(self, load=False):
+        df = pd.read_csv('transformed_dataset/test.csv', header=None)
+
+        X_test = df.iloc[:, 0:38].values
+        Y_test = df.iloc[:, 39:40].values
+
+        Y_predict = self.predict(X_test, load)
 
         folder_name = 'result' + os.path.sep + \
             str(self.history.acc['epoch'][-1]) + os.path.sep
@@ -147,7 +151,7 @@ class MainModel(object):
             label_dict = self.label_dict
 
         Y_predict = model.predict(X)
-        return self.number2label(label_dict, self.Y_test[0], 'mm'), self.number2label(label_dict, Y_predict, 'mm')
+        return self.number2label(label_dict, Y_predict, 'mm')
 
     def number2label(self, label_dict, aa, label_name):
         mode_labels = label_dict[label_name]
@@ -180,8 +184,8 @@ class MainModel(object):
         return [Y_mm]
 
     def split_train_test(self, dataframe):
-        X = dataframe.ix[:, 0:38].values
-        Y = dataframe.ix[:, 38:39]
+        X = dataframe.iloc[:, 0:38].values
+        Y = dataframe.iloc[:, 38:39]
 
         encoded_columns = ['mm']
 
