@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-07 19:50:36
+# @Last Modified time: 2018-11-07 21:19:11
 from keras.engine import Model, Input
 from loss_history import LossHistory
 import numpy as np
@@ -29,7 +29,7 @@ verbose = True  # weather print info during training
 # hyperparameters
 BS = 10000
 learning_rate = 0.01
-EPOCHS = 3
+EPOCHS = 100
 decay = 0.004
 
 
@@ -44,77 +44,107 @@ class MainModel(object):
         self.label_dict = {}
         self.label_num = {}
 
-    def build(self, input_dim):
-        anti_num = self.label_num['anti']
+    def build_hide_mm(self, input):
         mm_num = self.label_num['mm']
+        bn1 = BatchNormalization()(input)
 
-        input_laywer = Input(shape=(input_dim, ))
+        hide1 = Dense(35, kernel_initializer='normal', activation='relu')(bn1)
 
-        bn1 = BatchNormalization(
-            input_shape=(input_dim,), scale=False)(input_laywer)
+        bn2 = BatchNormalization()(hide1)
 
-        hide1 = Dense(35, input_dim=input_dim,
-                      kernel_initializer='normal', activation='relu')(bn1)
+        hide2 = Dense(40, kernel_initializer='normal', activation='relu')(bn2)
 
-        bn2 = BatchNormalization(
-            input_shape=(input_dim,), scale=False)(hide1)
+        bn3 = BatchNormalization()(hide2)
 
-        hide2 = Dense(40, input_dim=input_dim,
-                      kernel_initializer='normal', activation='relu')(bn2)
+        hide3 = Dense(45, kernel_initializer='normal', activation='relu')(bn3)
 
-        bn3 = BatchNormalization(
-            input_shape=(input_dim,), scale=False)(hide2)
+        bn4 = BatchNormalization()(hide3)
 
-        hide3 = Dense(45, input_dim=input_dim,
-                      kernel_initializer='normal', activation='relu')(bn3)
+        hide4 = Dense(40, kernel_initializer='normal', activation='relu')(bn4)
 
-        bn4 = BatchNormalization(
-            input_shape=(input_dim,), scale=False)(hide3)
+        bn5 = BatchNormalization()(hide4)
 
-        hide4 = Dense(40, input_dim=input_dim,
-                      kernel_initializer='normal', activation='relu')(bn4)
+        hide5 = Dense(35, kernel_initializer='normal', activation='relu')(bn5)
 
-        bn5 = BatchNormalization(
-            input_shape=(input_dim,), scale=False)(hide4)
+        bn6 = BatchNormalization()(hide5)
 
-        hide5 = Dense(35, input_dim=input_dim,
-                      kernel_initializer='normal', activation='relu')(bn5)
+        hide6 = Dense(30, kernel_initializer='normal', activation='relu')(bn6)
 
-        bn6 = BatchNormalization(
-            input_shape=(input_dim,), scale=False)(hide5)
+        bn7 = BatchNormalization()(hide6)
 
-        hide6 = Dense(30, input_dim=input_dim,
-                      kernel_initializer='normal', activation='relu')(bn6)
+        hide7 = Dense(25, kernel_initializer='normal', activation='relu')(bn7)
 
-        bn7 = BatchNormalization(
-            input_shape=(input_dim,), scale=False)(hide6)
+        bn8 = BatchNormalization()(hide7)
 
-        hide7 = Dense(25, input_dim=input_dim,
-                      kernel_initializer='normal', activation='relu')(bn7)
+        hide8 = Dense(20, kernel_initializer='normal', activation='relu')(bn8)
 
-        bn8 = BatchNormalization(
-            input_shape=(input_dim,), scale=False)(hide7)
+        bn9 = BatchNormalization()(hide8)
 
-        hide8 = Dense(20, input_dim=input_dim,
-                      kernel_initializer='normal', activation='relu')(bn8)
+        hide9 = Dense(15, kernel_initializer='normal', activation='relu')(bn9)
 
-        bn9 = BatchNormalization(
-            input_shape=(input_dim,), scale=False)(hide8)
+        bn10 = BatchNormalization()(hide9)
 
-        hide9 = Dense(15, input_dim=input_dim,
-                      kernel_initializer='normal', activation='relu')(bn9)
-
-        bn10 = BatchNormalization(
-            input_shape=(input_dim,), scale=False)(hide9)
-
-        hide10 = Dense(10, input_dim=input_dim,
-                       kernel_initializer='normal', activation='relu')(bn10)
+        hide10 = Dense(10, kernel_initializer='normal',
+                       activation='relu')(bn10)
 
         mm_output = Dense(
             mm_num, kernel_initializer='normal', activation='sigmoid', name='mm')(hide10)
 
+        return mm_output
+
+    def build_hide_anti(self, input):
+        anti_num = self.label_num['anti']
+        bn1 = BatchNormalization()(input)
+
+        hide1 = Dense(35, kernel_initializer='normal', activation='relu')(bn1)
+
+        bn2 = BatchNormalization()(hide1)
+
+        hide2 = Dense(40, kernel_initializer='normal', activation='relu')(bn2)
+
+        bn3 = BatchNormalization()(hide2)
+
+        hide3 = Dense(45, kernel_initializer='normal', activation='relu')(bn3)
+
+        bn4 = BatchNormalization()(hide3)
+
+        hide4 = Dense(40, kernel_initializer='normal', activation='relu')(bn4)
+
+        bn5 = BatchNormalization()(hide4)
+
+        hide5 = Dense(35, kernel_initializer='normal', activation='relu')(bn5)
+
+        bn6 = BatchNormalization()(hide5)
+
+        hide6 = Dense(30, kernel_initializer='normal', activation='relu')(bn6)
+
+        bn7 = BatchNormalization()(hide6)
+
+        hide7 = Dense(25, kernel_initializer='normal', activation='relu')(bn7)
+
+        bn8 = BatchNormalization()(hide7)
+
+        hide8 = Dense(20, kernel_initializer='normal', activation='relu')(bn8)
+
+        bn9 = BatchNormalization()(hide8)
+
+        hide9 = Dense(15, kernel_initializer='normal', activation='relu')(bn9)
+
+        bn10 = BatchNormalization()(hide9)
+
+        hide10 = Dense(10, kernel_initializer='normal',
+                       activation='relu')(bn10)
+
         anti_output = Dense(
             anti_num, kernel_initializer='normal', activation='sigmoid', name='anti')(hide10)
+
+        return anti_output
+
+    def build(self, input_dim):
+        input_laywer = Input(shape=(input_dim, ))
+
+        mm_output = self.build_hide_mm(input_laywer)
+        anti_output = self.build_hide_anti(input_laywer)
 
         model = Model(inputs=input_laywer, outputs=[mm_output, anti_output])
         return model
