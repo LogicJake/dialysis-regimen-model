@@ -165,7 +165,7 @@ class Preprocessing(object):
 
     def oversample(self, data):
         X = data[:, :38]
-        Y = data[:, -2]
+        Y = data[:, -1]
 
         sm = SMOTE(random_state=42)
         X_1, y_1 = sm.fit_resample(X, Y)

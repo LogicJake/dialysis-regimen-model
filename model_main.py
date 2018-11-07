@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-06 17:13:06
+# @Last Modified time: 2018-11-07 09:56:27
 import warnings
 from loss_history import LossHistory
 import numpy as np
@@ -27,8 +27,8 @@ plot = False
 # hyperparameters
 BS = 10000
 learning_rate = 0.01
-EPOCHS = 20000
-decay = 0.006
+EPOCHS = 1000
+decay = 0.004
 
 
 class MainModel(object):
@@ -43,7 +43,7 @@ class MainModel(object):
         self.label_num = {}
 
     def build(self, input_dim):
-        mm_num = self.label_num['mm']
+        anti_num = self.label_num['anti']
 
         model = Sequential()
         model.add(BatchNormalization(input_shape=(input_dim,), scale=False))
@@ -51,50 +51,40 @@ class MainModel(object):
                         kernel_initializer='normal', activation='relu'))
 
         model.add(BatchNormalization())
-        model.add(Dense(40, input_dim=input_dim,
-                        kernel_initializer='normal', activation='relu'))
+        model.add(Dense(40, kernel_initializer='normal', activation='relu'))
 
         model.add(BatchNormalization())
-        model.add(Dense(45, input_dim=input_dim,
-                        kernel_initializer='normal', activation='relu'))
+        model.add(Dense(45, kernel_initializer='normal', activation='relu'))
 
         model.add(BatchNormalization())
-        model.add(Dense(40, input_dim=input_dim,
-                        kernel_initializer='normal', activation='relu'))
-
-        # model.add(Dropout(0.2))
+        model.add(Dense(40, kernel_initializer='normal', activation='relu'))
 
         model.add(BatchNormalization())
-        model.add(Dense(35, input_dim=input_dim,
-                        kernel_initializer='normal', activation='relu'))
+        model.add(Dense(35, kernel_initializer='normal', activation='relu'))
 
         model.add(BatchNormalization())
-        model.add(Dense(30, input_dim=input_dim,
-                        kernel_initializer='normal', activation='relu'))
+        model.add(Dense(30, kernel_initializer='normal', activation='relu'))
 
         model.add(BatchNormalization())
-        model.add(Dense(25, input_dim=input_dim,
-                        kernel_initializer='normal', activation='relu'))
+        model.add(Dense(25, kernel_initializer='normal', activation='relu'))
 
         model.add(BatchNormalization())
-        model.add(Dense(20, input_dim=input_dim,
-                        kernel_initializer='normal', activation='relu'))
+        model.add(Dense(20, kernel_initializer='normal', activation='relu'))
 
         model.add(BatchNormalization())
-        model.add(Dense(15, input_dim=input_dim,
-                        kernel_initializer='normal', activation='relu'))
+        model.add(Dense(15, kernel_initializer='normal', activation='relu'))
+
         model.add(BatchNormalization())
-        model.add(Dense(10, input_dim=input_dim,
-                        kernel_initializer='normal', activation='relu'))
+        model.add(Dense(10, kernel_initializer='normal', activation='relu'))
 
         model.add(
-            Dense(mm_num, kernel_initializer='random_uniform', activation='sigmoid'))
+            Dense(anti_num, kernel_initializer='normal', activation='sigmoid'))
 
         return model
 
     def train(self):
         dataframe = pd.read_csv(self.path, header=None, names=['sex', 'age', 'dweight', 'cweight', 'd_0', 'd_1', 'd_2', 'd_3', 'd_4', 'd_5', 'd_6', 'd_7', 'd_8', 'd_9', 'd_10', 'd_11', 'd_12',
-                                                               'd_13', 'd_14', 'd_15', 'd_16', 'c_0', 'c_1', 'c_2', 'c_3', 'c_4', 'c_5', 'c_6', 'c_7', 'c_8', 'c_9', 'c_10', 'c_11', 'c_12', 'c_13', 'c_14', 'c_15', 'c_16', 'mm'])
+                                                               'd_13', 'd_14', 'd_15', 'd_16', 'c_0', 'c_1', 'c_2', 'c_3', 'c_4', 'c_5', 'c_6', 'c_7', 'c_8', 'c_9', 'c_10', 'c_11', 'c_12', 'c_13', 'c_14', 'c_15', 'c_16', 'anti'])
 
         X_tranin, Y_tranin, X_val, Y_val = self.split_train_test(dataframe)
 
@@ -122,7 +112,7 @@ class MainModel(object):
         df = pd.read_csv('transformed_dataset/test.csv', header=None)
 
         X_test = df.iloc[:, 0:38].values
-        Y_test = df.iloc[:, 39:40].values
+        Y_test = df.iloc[:, 40:41].values
 
         Y_predict = self.predict(X_test, load)
 
@@ -151,7 +141,7 @@ class MainModel(object):
             label_dict = self.label_dict
 
         Y_predict = model.predict(X)
-        return self.number2label(label_dict, Y_predict, 'mm')
+        return self.number2label(label_dict, Y_predict, 'anti')
 
     def number2label(self, label_dict, aa, label_name):
         mode_labels = label_dict[label_name]
@@ -175,7 +165,7 @@ class MainModel(object):
             self.label_num[column] = index
 
     def split_Y(self, dataset):
-        mm_num = self.label_num['mm']
+        mm_num = self.label_num['anti']
 
         mm_start = 0
 
@@ -187,7 +177,7 @@ class MainModel(object):
         X = dataframe.iloc[:, 0:38].values
         Y = dataframe.iloc[:, 38:39]
 
-        encoded_columns = ['mm']
+        encoded_columns = ['anti']
 
         # one-hot encoder
         Y = pd.get_dummies(
