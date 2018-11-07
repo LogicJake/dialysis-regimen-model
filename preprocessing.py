@@ -3,8 +3,6 @@
 # @Author  : LogicJake
 # @File    : preprocessing.py
 import os
-from sklearn.model_selection import train_test_split
-
 import pandas as pd
 import numpy as np
 from imblearn.over_sampling import SMOTE
@@ -129,52 +127,64 @@ class Preprocessing(object):
 
         # not sample data to test model
         df_test = df_concat.sample(frac=0.05, replace=False, axis=0)
+        df_test = df_test.drop(columns=['anti_add'])
         df_test.to_csv('transformed_dataset/test.csv',
                        index=False, header=False)
 
         df_other = df_concat.drop(df_test.index)
-        df_sample = self.oversample(df_other.values)
+        df_sample = self.oversample(df_other)
+        # drop anti-add
+        df_sample = df_sample.drop(columns=['anti_add'])
         df_sample.to_csv('transformed_dataset/final.csv',
                          index=False, header=False)
 
-    def reformat2(self):
-        input_data = self.reformat_input()
-        output_data = self.reformat_output()
-
-        df_concat = pd.merge(input_data, output_data,
-                             how='left', left_on='id', right_on='id')
-        df_concat = df_concat.dropna()
-        df_concat = df_concat.drop(columns=['id'])
-
-        data = df_concat.values
-        X = data[:, :38]
-        Y = data[:, -2]
-
-        X_train, X_test, y_train, y_test = train_test_split(X, Y)
-
-        X_train, y_train = self.oversample2(X_train, y_train)
-
-        return X_train, X_test, y_train, y_test
-
-    def oversample2(self, X_train, y_train):
-        sm = SMOTE(random_state=42)
-        X_1, y_1 = sm.fit_resample(X_train, y_train)
-        y_1 = y_1.reshape((y_1.shape[0], -1))
-
-        return X_1, y_1
+    def label2number(self, df, name):
+        value = set()
+        df.apply(lambda row: value.add(row[name]), axis=1)
+        value = list(value)
+        value.sort()
+        trans = dict()
+        reverse = dict()
+        for index, m in enumerate(value):
+            reverse[index] = m
+            trans[m] = index
+        df[name] = df[name].map(trans)
+        return df, reverse
 
     def oversample(self, data):
-        X = data[:, :38]
-        Y = data[:, -1]
+        data, mm_reverse = self.label2number(data, 'mm')
+        data, anti_reverse = self.label2number(data, 'anti')
+        data = data.values
+
+        # oversample mm
+        X_index = list(range(39))
+        X_index.append(40)
+        X = data[:, X_index]
+        Y = data[:, 39]
 
         sm = SMOTE(random_state=42)
-        X_1, y_1 = sm.fit_resample(X, Y)
-        y_1 = y_1.reshape((y_1.shape[0], -1))
-        r_data = np.concatenate((X_1, y_1), axis=1)
+        X_1, Y_1 = sm.fit_resample(X, Y)
+        Y_1 = Y_1.reshape((Y_1.shape[0], -1))
+        data = np.concatenate((X_1, Y_1), axis=1)
 
-        # Y = Y.reshape((Y.shape[0], -1))
-        # r_data = np.concatenate((X, Y), axis=1)
-        return pd.DataFrame(r_data)
+        # oversample anti
+        X = data[:, X_index]
+        Y = np.rint(data[:, 39])
+
+        sm = SMOTE(random_state=42)
+        X_1, Y_1 = sm.fit_resample(X, Y)
+        Y_1 = Y_1.reshape((Y_1.shape[0], -1))
+        data = np.concatenate((X_1, Y_1), axis=1)
+
+        data = pd.DataFrame(data)
+        data.columns = ['sex', 'age', 'dweight', 'cweight', 'd_0', 'd_1', 'd_2', 'd_3', 'd_4', 'd_5', 'd_6', 'd_7', 'd_8', 'd_9', 'd_10', 'd_11', 'd_12',
+                        'd_13', 'd_14', 'd_15', 'd_16', 'c_0', 'c_1', 'c_2', 'c_3', 'c_4', 'c_5', 'c_6', 'c_7', 'c_8', 'c_9', 'c_10', 'c_11', 'c_12', 'c_13', 'c_14', 'c_15', 'c_16', 'anti_add', 'mm', 'anti']
+
+        data['mm'] = data['mm'].map(lambda x: round(x))
+        data['mm'] = data['mm'].map(mm_reverse)
+        data['anti'] = data['anti'].map(anti_reverse)
+        return data
+
 
 if __name__ == '__main__':
     preprocessing = Preprocessing('dataset/input.csv', 'dataset/output.csv')
