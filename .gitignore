@@ -13,8 +13,6 @@ model/*/*.txt
 
 *.pyc
 
-svm\.py
-
 record\.txt
 
 result/*/
