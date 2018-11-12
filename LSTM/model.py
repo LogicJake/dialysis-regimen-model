@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-12 19:49:34
+# @Last Modified time: 2018-11-12 20:44:05
 import os
 import time
 
@@ -14,12 +14,15 @@ from keras.utils import plot_model
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from preprocessing import series_length
+import logging
+
+logging.basicConfig(filename='log.txt', level=logging.ERROR)
 
 plot = True
 
 learning_rate = 0.01
 decay = 0.004
-EPOCHS = 1000
+EPOCHS = 1
 BS = 10000
 
 
@@ -81,6 +84,14 @@ class LSTMModel(object):
         history = model.fit(trainX, trainY, epochs=EPOCHS, batch_size=BS, validation_data=(
             testX, testY), verbose=1)
 
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
+        logger.info(
+            "******************************************one record******************************************")
+        logger.info(self.id + ': ' + 'training over. mm acc: ' +
+                    str(history.history['val_mm_acc']) + '\tanti acc: ' + str(history.history['val_anti_acc']))
+        logger.info(str(learning_rate) + " " +
+                    str(decay) + " " + str(EPOCHS) + " " + str(BS))
         # plot history
         plt.plot(history.history['loss'], label='train')
         plt.plot(history.history['val_loss'], label='test')
