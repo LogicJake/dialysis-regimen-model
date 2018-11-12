@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-12 19:18:34
+# @Last Modified time: 2018-11-12 19:49:34
 import os
 import time
 
 import pandas as pd
 from keras import optimizers
 from keras.engine import Model, Input
-from keras.layers import Dense, LSTM
+from keras.layers import Dense, LSTM, BatchNormalization
 import matplotlib.pyplot as plt
 from keras.utils import plot_model
 from sklearn.model_selection import train_test_split
@@ -19,7 +19,7 @@ plot = True
 
 learning_rate = 0.01
 decay = 0.004
-EPOCHS = 100
+EPOCHS = 1000
 BS = 10000
 
 
@@ -60,8 +60,8 @@ class LSTMModel(object):
 
         input_laywer = Input(
             shape=(trainX.shape[1], trainX.shape[2]), name='input_x')
-
-        lstm = LSTM(50)(input_laywer)
+        bn = BatchNormalization()(input_laywer)
+        lstm = LSTM(50)(bn)
 
         mm_num = self.label_num['mm(t)']
         anti_num = self.label_num['anti(t)']
