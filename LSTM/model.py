@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-12 20:44:05
+# @Last Modified time: 2018-11-12 21:06:10
 import os
 import time
 
@@ -89,7 +89,7 @@ class LSTMModel(object):
         logger.info(
             "******************************************one record******************************************")
         logger.info(self.id + ': ' + 'training over. mm acc: ' +
-                    str(history.history['val_mm_acc']) + '\tanti acc: ' + str(history.history['val_anti_acc']))
+                    str(history.history['val_mm_acc'][-1]) + '\tanti acc: ' + str(history.history['val_anti_acc'][-1]))
         logger.info(str(learning_rate) + " " +
                     str(decay) + " " + str(EPOCHS) + " " + str(BS))
         # plot history
