@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-07 21:19:11
+# @Last Modified time: 2018-11-13 21:47:25
 from keras.engine import Model, Input
 from loss_history import LossHistory
 import numpy as np
@@ -16,20 +16,20 @@ from sklearn.metrics import classification_report
 import os
 import time
 import logging
-
+import re
 # set level to error to filter tensorflow's warnings
 logging.basicConfig(filename='log.txt', level=logging.ERROR)
 
 # seed = 7
 # np.random.seed(seed)
 
-plot = False  # weather plot acc or loss
+plot = True  # weather plot acc or loss
 verbose = True  # weather print info during training
 
 # hyperparameters
 BS = 10000
 learning_rate = 0.01
-EPOCHS = 100
+EPOCHS = 1
 decay = 0.004
 
 
@@ -169,14 +169,18 @@ class MainModel(object):
                   validation_data=(X_val, Y_val),
                   epochs=EPOCHS, verbose=verbose, callbacks=[history])
 
+        self.model = model
         self.id = str(int(time.time()))
         self.history = history
+        self.mm_acc = history.mm_val_acc[-1]
+        self.anti_acc = history.anti_val_acc[-1]
         self.save_model(model)
 
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
-        logger.info(self.id + ': ' + 'training over. mm acc: ' +
-                    str(self.history.mm_acc[-1]) + '\tanti acc: ' + str(self.history.anti_acc[-1]))
+        logger.info(self.id + ': training over. mm acc: {' + str(self.mm_acc) + '}\tanti acc: {' + str(self.anti_acc) +
+                    '}\thyperparameters are ' + str(learning_rate) + '\t' +
+                    str(decay) + '\t' + str(EPOCHS) + '\t' + str(BS))
 
     def analyse(self, load=False):
         df = pd.read_csv('transformed_dataset/test.csv', header=None)
@@ -278,18 +282,36 @@ class MainModel(object):
         return trainX, trainY, testX, testY
 
     def save_model(self, model):
+        is_better = False
 
-        folder = 'model' + os.path.sep + self.id + os.path.sep
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+        with open('log.txt', 'r') as f:
+            lines = f.readlines()
+            if len(lines) == 0:
+                is_better = True
+            else:
+                last_log = lines[-1]
 
-        self.model = model
-        model.save(folder + 'model.h5')
-        with open(folder + 'labels.txt', 'w') as outfile:
-            outfile.write(str(self.label_dict))
-        if plot:
-            plot_model(model, to_file=folder +
-                       'model.png', show_shapes=True)
+        pattern = re.compile(r'[{](.*?)[}]', re.S)
+
+        if not is_better:
+            try:
+                mm_acc, anti_acc = re.findall(pattern, last_log)
+                if float(mm_acc) + float(anti_acc) < self.mm_acc + self.anti_acc:
+                    is_better = True
+            except ValueError:
+                is_better = True
+
+        if is_better:
+            folder = 'model' + os.path.sep
+            if not os.path.exists(folder):
+                os.makedirs(folder)
+
+            model.save(folder + 'model.h5')
+            with open(folder + 'labels.txt', 'w') as outfile:
+                outfile.write(str(self.label_dict))
+            if plot:
+                plot_model(model, to_file=folder +
+                           'model.png', show_shapes=True)
 
 
 if __name__ == '__main__':

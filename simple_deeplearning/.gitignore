@@ -1,6 +1,6 @@
+log\.txt
 model/*/*.png
 model/*/*.h5
 model/*/*.txt
 transformed_dataset/
 result/*
-log\.txt

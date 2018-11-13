@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-13 20:36:17
+# @Last Modified time: 2018-11-13 21:47:59
 import os
 import time
 
@@ -16,6 +16,9 @@ from sklearn.preprocessing import MinMaxScaler
 from preprocessing import series_length
 import logging
 from keras.models import load_model
+import re
+from loss_history import LossHistory
+
 
 logging.basicConfig(filename='log.txt', level=logging.ERROR)
 
@@ -25,6 +28,7 @@ learning_rate = 0.01
 decay = 0.004
 EPOCHS = 1000
 BS = 10000
+verbose = 1
 
 
 class LSTMModel(object):
@@ -83,28 +87,30 @@ class LSTMModel(object):
             anti_num, kernel_initializer='normal', activation='sigmoid', name='anti')(lstm2)
         model = Model(inputs=input_laywer, outputs=[mm_output, anti_output])
 
-        self.save_model(model)
-
         optimizer = optimizers.Adam(lr=learning_rate, beta_1=0.9,
                                     beta_2=0.999, epsilon=1e-08, decay=decay)
         model.compile(loss=['categorical_crossentropy',
                             'categorical_crossentropy'], optimizer=optimizer, metrics=['accuracy'])
-        history = model.fit(trainX, trainY, epochs=EPOCHS, batch_size=BS, validation_data=(
-            testX, testY), verbose=1)
 
+        history = LossHistory()
+        model.fit(trainX, trainY, epochs=EPOCHS, batch_size=BS, validation_data=(
+            testX, testY), verbose=verbose,  callbacks=[history])
+
+        self.model = model
+        self.id = str(int(time.time()))
+        self.history = history
+        self.mm_acc = history.mm_val_acc[-1]
+        self.anti_acc = history.anti_val_acc[-1]
+
+        self.save_model(model)
+        self.history.save_loss(plot, 'result' + os.path.sep +
+                               self.id + os.path.sep)
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
-        logger.info(
-            "******************************************one record******************************************")
-        logger.info(self.id + ': ' + 'training over. mm acc: ' +
-                    str(history.history['val_mm_acc'][-1]) + '\tanti acc: ' + str(history.history['val_anti_acc'][-1]))
-        logger.info(str(learning_rate) + " " +
-                    str(decay) + " " + str(EPOCHS) + " " + str(BS) + " " + str(series_length))
-        # plot history
-        plt.plot(history.history['loss'], label='train')
-        plt.plot(history.history['val_loss'], label='test')
-        plt.legend()
-        plt.show()
+
+        logger.info(self.id + ': training over. mm acc: {' + str(self.mm_acc) + '}\tanti acc: {' + str(self.anti_acc) +
+                    '}\thyperparameters are ' + str(learning_rate) + '\t' +
+                    str(decay) + '\t' + str(EPOCHS) + '\t' + str(BS) + '\t' + str(series_length))
 
     def split_Y(self, dataset):
         mm_num = self.label_num['mm']
@@ -155,18 +161,36 @@ class LSTMModel(object):
             self.label_num[column] = index
 
     def save_model(self, model):
+        is_better = False
 
-        folder = 'model' + os.path.sep + self.id + os.path.sep
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+        with open('log.txt', 'r') as f:
+            lines = f.readlines()
+            if len(lines) == 0:
+                is_better = True
+            else:
+                last_log = lines[-1]
 
-        self.model = model
-        model.save(folder + 'model.h5')
-        with open(folder + 'labels.txt', 'w') as outfile:
-            outfile.write(str(self.label_dict))
-        if plot:
-            plot_model(model, to_file=folder +
-                       'model.png', show_shapes=True)
+        pattern = re.compile(r'[{](.*?)[}]', re.S)
+
+        if not is_better:
+            try:
+                mm_acc, anti_acc = re.findall(pattern, last_log)
+                if float(mm_acc) + float(anti_acc) < self.mm_acc + self.anti_acc:
+                    is_better = True
+            except ValueError:
+                is_better = True
+
+        if is_better:
+            folder = 'model' + os.path.sep
+            if not os.path.exists(folder):
+                os.makedirs(folder)
+
+            model.save(folder + 'model.h5')
+            with open(folder + 'labels.txt', 'w') as outfile:
+                outfile.write(str(self.label_dict))
+            if plot:
+                plot_model(model, to_file=folder +
+                           'model.png', show_shapes=True)
 
 
 if __name__ == '__main__':
