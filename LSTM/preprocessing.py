@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-11 15:37:32
-# @Last Modified time: 2018-11-12 18:42:12
+# @Last Modified time: 2018-11-13 10:30:43
 import os
 import pandas as pd
 import numpy as np
@@ -130,10 +130,18 @@ class Preprocessing(object):
         df_series.to_csv('transformed_dataset/final.csv', index=False)
 
     def time_series(self, data):
+        global mm_top
+        global anti_top
+        mm_top = min(mm_top, len(data['mm'].unique()))
+        anti_top = min(anti_top, len(data['anti'].unique()))
+
+        encoded_columns = ['mm', 'anti']
+        data = pd.get_dummies(data, columns=encoded_columns, prefix_sep='+')
+
         col_name = data.columns.values.tolist()
-        input_col = col_name[1:40]
+        input_col = col_name[1:]
         input_col.remove('date')
-        output_col = col_name[40:]
+        output_col = col_name[-(mm_top + anti_top):]
 
         names = []
         for i in range(series_length, 0, -1):
@@ -151,10 +159,9 @@ class Preprocessing(object):
                 series = []
                 for i in range(series_length + 1):
                     if i != series_length:
-                        series.append(group.drop(
-                            ['anti', 'mm'], axis=1).shift(-i))
+                        series.append(group.shift(-i))
                     else:
-                        series.append(group[['mm', 'anti']].shift(-i))
+                        series.append(group[output_col].shift(-i))
                 agg = pd.concat(series, axis=1)
                 agg.dropna(inplace=True)
                 entire_series.append(agg)

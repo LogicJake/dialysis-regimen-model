@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-12 21:06:10
+# @Last Modified time: 2018-11-13 18:10:55
 import os
 import time
 
@@ -22,7 +22,7 @@ plot = True
 
 learning_rate = 0.01
 decay = 0.004
-EPOCHS = 1
+EPOCHS = 100
 BS = 10000
 
 
@@ -37,11 +37,11 @@ class LSTMModel(object):
 
     def train(self):
         df = pd.read_csv(self.path)
-        X = df.iloc[:, :-2]
-        Y = df.iloc[:, -2:]
+        X = df.iloc[:, :-61]
+        Y = df.iloc[:, -61:]
 
-        encoded_columns = ['mm(t)', 'anti(t)']
-        Y = pd.get_dummies(Y, columns=encoded_columns, prefix_sep='+')
+        encoded_columns = ['mm', 'anti']
+        # Y = pd.get_dummies(Y, columns=encoded_columns, prefix_sep='+')
         column_name = Y.columns.values.tolist()
         self.label_counter(column_name, encoded_columns)
 
@@ -66,8 +66,8 @@ class LSTMModel(object):
         bn = BatchNormalization()(input_laywer)
         lstm = LSTM(50)(bn)
 
-        mm_num = self.label_num['mm(t)']
-        anti_num = self.label_num['anti(t)']
+        mm_num = self.label_num['mm']
+        anti_num = self.label_num['anti']
 
         mm_output = Dense(
             mm_num, kernel_initializer='normal', activation='sigmoid', name='mm')(lstm)
@@ -99,8 +99,8 @@ class LSTMModel(object):
         plt.show()
 
     def split_Y(self, dataset):
-        mm_num = self.label_num['mm(t)']
-        anti_num = self.label_num['anti(t)']
+        mm_num = self.label_num['mm']
+        anti_num = self.label_num['anti']
 
         mm_start = 0
         anti_start = mm_start + mm_num
@@ -116,7 +116,7 @@ class LSTMModel(object):
             label = {}
             for column_name in columns:
                 if column_name.startswith(column + "+"):
-                    label[index] = column_name.split('+')[1]
+                    label[index] = column_name.split('+')[1][:-3]
                     index += 1
             self.label_dict[column] = label
             self.label_num[column] = index
