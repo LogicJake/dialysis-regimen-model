@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-13 20:05:49
+# @Last Modified time: 2018-11-13 20:36:17
 import os
 import time
 
@@ -15,6 +15,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from preprocessing import series_length
 import logging
+from keras.models import load_model
 
 logging.basicConfig(filename='log.txt', level=logging.ERROR)
 
@@ -116,6 +117,31 @@ class LSTMModel(object):
         Y_anti = dataset[:, anti_start:anti_start + anti_num]
 
         return [Y_mm, Y_anti]
+
+    def predict(self, X, load):
+        if load:
+            model = load_model('model/model.h5')
+            with open('model/labels.txt', 'r') as f:
+                a = f.read()
+                label_dict = eval(a)
+        else:
+            model = self.model
+            label_dict = self.label_dict
+
+        Y_predict = model.predict(X)
+        mm_predict = Y_predict[0]
+        anti_predict = Y_predict[1]
+        return self.number2label(label_dict, mm_predict, 'mm'), self.number2label(label_dict, anti_predict, 'anti')
+
+    def number2label(self, label_dict, aa, label_name):
+        mode_labels = label_dict[label_name]
+
+        res = []
+        for row in aa:
+            labels = row.tolist()
+            res.append(mode_labels[labels.index(max(labels))])
+
+        return res
 
     def label_counter(self, columns, encoded_columns):
         for column in encoded_columns:
