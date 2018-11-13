@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-13 19:02:24
+# @Last Modified time: 2018-11-13 20:05:49
 import os
 import time
 
@@ -37,8 +37,14 @@ class LSTMModel(object):
 
     def train(self):
         df = pd.read_csv(self.path)
-        X = df.iloc[:, :-61]
-        Y = df.iloc[:, -61:]
+
+        cols = df.columns.values.tolist()
+        output_num = 0
+        for column_name in cols:
+            if column_name[-3:] == "(t)":
+                output_num += 1
+        X = df.iloc[:, :-output_num]
+        Y = df.iloc[:, -output_num:]
 
         encoded_columns = ['mm', 'anti']
         # Y = pd.get_dummies(Y, columns=encoded_columns, prefix_sep='+')
