@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-13 18:46:22
+# @Last Modified time: 2018-11-13 19:02:24
 import os
 import time
 
@@ -18,11 +18,11 @@ import logging
 
 logging.basicConfig(filename='log.txt', level=logging.ERROR)
 
-plot = True
+plot = False
 
 learning_rate = 0.01
 decay = 0.004
-EPOCHS = 100
+EPOCHS = 1000
 BS = 10000
 
 
@@ -64,15 +64,16 @@ class LSTMModel(object):
         input_laywer = Input(
             shape=(trainX.shape[1], trainX.shape[2]), name='input_x')
         bn = BatchNormalization()(input_laywer)
-        lstm = LSTM(50)(bn)
+        lstm1 = LSTM(50)(bn)
+        lstm2 = LSTM(50)(bn)
 
         mm_num = self.label_num['mm']
         anti_num = self.label_num['anti']
 
         mm_output = Dense(
-            mm_num, kernel_initializer='normal', activation='sigmoid', name='mm')(lstm)
+            mm_num, kernel_initializer='normal', activation='sigmoid', name='mm')(lstm1)
         anti_output = Dense(
-            anti_num, kernel_initializer='normal', activation='sigmoid', name='anti')(lstm)
+            anti_num, kernel_initializer='normal', activation='sigmoid', name='anti')(lstm2)
         model = Model(inputs=input_laywer, outputs=[mm_output, anti_output])
 
         self.save_model(model)
