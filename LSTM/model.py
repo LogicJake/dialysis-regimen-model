@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-14 11:07:17
+# @Last Modified time: 2018-11-14 11:16:58
 import os
 import time
 
@@ -24,7 +24,7 @@ PLOT = False
 
 LR = 0.01
 DECAY = 0.004
-EPOCHS = 1000
+EPOCHS = 1
 BS = 10000
 VERBOSE = 1
 
@@ -40,8 +40,8 @@ class LSTMModel(object):
         self.id = str(int(time.time()))  # indicate this train
 
         # make required Folder
-        dirs = ['model', 'result/' + self.id +
-                'mm', 'result/' + self.id + 'anti']
+        dirs = ['model', 'result' + os.path.sep + self.id + os.path.sep +
+                'mm', 'result' + os.path.sep + self.id + os.path.sep + 'anti']
         for dir in dirs:
             if not os.path.exists(dir):
                 os.makedirs(dir)
@@ -122,7 +122,7 @@ class LSTMModel(object):
 
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
-        logger.info(self.id + ': training over. mm acc: {' + str(self.mm_acc) + '}\tanti acc: {' + str(self.anti_acc) +
+        logger.info(self.id + ': training over. mm acc: {' + str(mm_acc) + '}\tanti acc: {' + str(anti_acc) +
                     '}\thyperparameters are ' + str(LR) + '\t' +
                     str(DECAY) + '\t' + str(EPOCHS) + '\t' + str(BS) + '\t' + str(series_length))
 
