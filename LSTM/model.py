@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-14 12:49:23
+# @Last Modified time: 2018-11-14 15:22:49
 import os
 import time
 
@@ -39,7 +39,6 @@ class LSTMModel(object):
         self.id = str(int(time.time()))
         self.label_dict = {}
         self.label_num = {}
-        self.id = str(int(time.time()))  # indicate this train
 
         # make required Folder
         dirs = ['model', 'result' + os.path.sep + self.id + os.path.sep +
@@ -71,13 +70,10 @@ class LSTMModel(object):
         column_name = Y.columns.values.tolist()
         self.label_counter(column_name, encoded_columns)
 
-        # normalize features
-        # scaler = MinMaxScaler(feature_range=(0, 1))
-        # X = scaler.fit_transform(X.values)
         X = X.values
-
+        Y = Y.values
         trainX, testX, trainY, testY = train_test_split(
-            X, Y.values, test_size=0.1)
+            X, Y, test_size=0.1)
 
         # reshape input to be 3D [samples, timesteps, features]
         trainX = trainX.reshape(
@@ -94,7 +90,7 @@ class LSTMModel(object):
         # BatchNormalization is best :)
         bn = BatchNormalization()(input_laywer)
         lstm1 = LSTM(units=UNITS, recurrent_dropout=RD)(bn)
-        lstm2 = LSTM(50)(bn)
+        lstm2 = LSTM(units=UNITS, recurrent_dropout=RD)(bn)
 
         mm_num = self.label_num['mm']
         anti_num = self.label_num['anti']
