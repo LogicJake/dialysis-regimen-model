@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-14 12:18:14
+# @Last Modified time: 2018-11-14 12:35:03
 import os
 import time
 
@@ -27,6 +27,8 @@ DECAY = 0.004
 EPOCHS = 1
 BS = 10000
 VERBOSE = 1
+UNITS = 50
+RD = 0.1
 
 
 class LSTMModel(object):
@@ -70,8 +72,9 @@ class LSTMModel(object):
         self.label_counter(column_name, encoded_columns)
 
         # normalize features
-        scaler = MinMaxScaler(feature_range=(0, 1))
-        X = scaler.fit_transform(X.values)
+        # scaler = MinMaxScaler(feature_range=(0, 1))
+        # X = scaler.fit_transform(X.values)
+        X = X.values
 
         trainX, testX, trainY, testY = train_test_split(
             X, Y.values, test_size=0.1)
@@ -90,7 +93,7 @@ class LSTMModel(object):
 
         # BatchNormalization is best :)
         bn = BatchNormalization()(input_laywer)
-        lstm = LSTM(50)(bn)
+        lstm = LSTM(units=UNITS, recurrent_dropout=RD)(bn)
         # lstm2 = LSTM(50)(bn)
 
         mm_num = self.label_num['mm']
