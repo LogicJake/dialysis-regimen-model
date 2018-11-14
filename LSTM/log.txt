@@ -1,0 +1,1 @@
+INFO:root:1542184734: training over. mm acc: {0.9529976270181669}	anti acc: {0.9649880192548537}	hyperparameters are 0.01	0.004	1000	1000	7

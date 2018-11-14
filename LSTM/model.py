@@ -24,11 +24,11 @@ PLOT = False
 
 LR = 0.01
 DECAY = 0.004
-EPOCHS = 1
-BS = 10000
+EPOCHS = 1000
+BS = 1000
 VERBOSE = 1
 UNITS = 50
-RD = 0.1
+RD = 0.2
 
 
 class LSTMModel(object):
