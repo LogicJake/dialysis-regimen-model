@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-11 15:37:32
-# @Last Modified time: 2018-11-13 20:08:01
+# @Last Modified time: 2018-11-14 10:56:27
 import os
 import pandas as pd
 import numpy as np
@@ -166,6 +166,7 @@ class Preprocessing(object):
         reframed = pd.concat(entire_series)
         reframed.columns = names
         return reframed
+
 
 if __name__ == '__main__':
     preprocessing = Preprocessing(

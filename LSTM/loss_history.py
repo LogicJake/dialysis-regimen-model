@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-31 10:45:22
-# @Last Modified time: 2018-11-13 21:23:45
+# @Last Modified time: 2018-11-14 10:52:44
 # LossHistory类，保存loss和acc
 
 import matplotlib.pyplot as plt
@@ -39,12 +39,6 @@ class LossHistory(Callback):
 
     def save_loss(self, plot, folder):
         if plot:
-            if not os.path.exists(folder + 'mm'):
-                os.makedirs(folder + 'mm')
-
-            if not os.path.exists(folder + 'anti'):
-                os.makedirs(folder + 'anti')
-
             iters = range(len(self.val_loss))  # x's range
             plt.figure()
 
