@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-14 11:16:58
+# @Last Modified time: 2018-11-14 12:18:14
 import os
 import time
 
@@ -208,8 +208,9 @@ class LSTMModel(object):
             model.save(folder + 'model.h5')
             with open(folder + 'labels.txt', 'w') as outfile:
                 outfile.write(str(self.label_dict))
-                plot_model(model, to_file=folder +
-                           'model.png', show_shapes=True)
+                if PLOT:
+                    plot_model(model, to_file=folder +
+                               'model.png', show_shapes=True)
 
 
 if __name__ == '__main__':
