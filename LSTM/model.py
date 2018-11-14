@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-14 12:35:03
+# @Last Modified time: 2018-11-14 12:49:23
 import os
 import time
 
@@ -93,16 +93,16 @@ class LSTMModel(object):
 
         # BatchNormalization is best :)
         bn = BatchNormalization()(input_laywer)
-        lstm = LSTM(units=UNITS, recurrent_dropout=RD)(bn)
-        # lstm2 = LSTM(50)(bn)
+        lstm1 = LSTM(units=UNITS, recurrent_dropout=RD)(bn)
+        lstm2 = LSTM(50)(bn)
 
         mm_num = self.label_num['mm']
         anti_num = self.label_num['anti']
 
         mm_output = Dense(
-            mm_num, kernel_initializer='normal', activation='sigmoid', name='mm')(lstm)
+            mm_num, kernel_initializer='normal', activation='sigmoid', name='mm')(lstm1)
         anti_output = Dense(
-            anti_num, kernel_initializer='normal', activation='sigmoid', name='anti')(lstm)
+            anti_num, kernel_initializer='normal', activation='sigmoid', name='anti')(lstm2)
         model = Model(inputs=input_laywer, outputs=[mm_output, anti_output])
 
         optimizer = optimizers.Adam(lr=LR, beta_1=0.9,
