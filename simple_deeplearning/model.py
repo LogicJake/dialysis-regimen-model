@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-13 21:47:25
+# @Last Modified time: 2018-11-14 15:19:47
 from keras.engine import Model, Input
 from loss_history import LossHistory
 import numpy as np
@@ -23,14 +23,14 @@ logging.basicConfig(filename='log.txt', level=logging.ERROR)
 # seed = 7
 # np.random.seed(seed)
 
-plot = True  # weather plot acc or loss
-verbose = True  # weather print info during training
+PLOT = True  # weather plot acc or loss
+VERBOSE = True  # weather print info during training
 
 # hyperparameters
 BS = 10000
-learning_rate = 0.01
+LR = 0.01
 EPOCHS = 1
-decay = 0.004
+DECAY = 0.004
 
 
 class MainModel(object):
@@ -39,10 +39,17 @@ class MainModel(object):
     def __init__(self, path):
         super(MainModel, self).__init__()
         self.path = path
-
+        self.id = str(int(time.time()))
         # the paramter about label encoder
         self.label_dict = {}
         self.label_num = {}
+
+        dirs = ['model', 'result',
+                'result' + os.path.sep + self.id + os.path.sep + 'mm',
+                'result' + os.path.sep + self.id + os.path.sep + 'anti']
+        for dir in dirs:
+            if not os.path.exists(dir):
+                os.makedirs(dir)
 
     def build_hide_mm(self, input):
         mm_num = self.label_num['mm']
@@ -157,8 +164,8 @@ class MainModel(object):
 
         model = self.build(X_tranin.shape[1])
         # Fit the model
-        optimizer = optimizers.Adam(lr=learning_rate, beta_1=0.9,
-                                    beta_2=0.999, epsilon=1e-08, decay=decay)
+        optimizer = optimizers.Adam(lr=LR, beta_1=0.9,
+                                    beta_2=0.999, epsilon=1e-08, decay=DECAY)
 
         model.compile(loss=['categorical_crossentropy', 'categorical_crossentropy'],
                       optimizer=optimizer, metrics=['accuracy'])
@@ -167,20 +174,22 @@ class MainModel(object):
 
         model.fit(X_tranin, Y_tranin, batch_size=BS,
                   validation_data=(X_val, Y_val),
-                  epochs=EPOCHS, verbose=verbose, callbacks=[history])
+                  epochs=EPOCHS, verbose=VERBOSE, callbacks=[history])
 
+        history.save_loss(PLOT, 'result' + os.path.sep +
+                          self.id + os.path.sep)
         self.model = model
-        self.id = str(int(time.time()))
         self.history = history
-        self.mm_acc = history.mm_val_acc[-1]
-        self.anti_acc = history.anti_val_acc[-1]
-        self.save_model(model)
+
+        mm_acc = history.mm_val_acc[-1]
+        anti_acc = history.anti_val_acc[-1]
+        self.save_model(model, mm_acc, anti_acc)
 
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
-        logger.info(self.id + ': training over. mm acc: {' + str(self.mm_acc) + '}\tanti acc: {' + str(self.anti_acc) +
-                    '}\thyperparameters are ' + str(learning_rate) + '\t' +
-                    str(decay) + '\t' + str(EPOCHS) + '\t' + str(BS))
+        logger.info(self.id + ': training over. mm acc: {' + str(mm_acc) + '}\tanti acc: {' + str(anti_acc) +
+                    '}\thyperparameters are ' + str(LR) + '\t' +
+                    str(DECAY) + '\t' + str(EPOCHS) + '\t' + str(BS))
 
     def analyse(self, load=False):
         df = pd.read_csv('transformed_dataset/test.csv', header=None)
@@ -193,16 +202,10 @@ class MainModel(object):
 
         self.save_analyse_res('mm', mm_test, mm_predict)
         self.save_analyse_res('anti', anti_test, anti_predict)
-        self.history.save_loss(plot, 'result' + os.path.sep +
-                               self.id + os.path.sep)
 
     def save_analyse_res(self, output_name, Y_test, Y_predict):
-        folder_name = 'result' + os.path.sep + \
-            self.id + os.path.sep + output_name\
-            + os.path.sep
-
-        if not os.path.exists(folder_name):
-            os.makedirs(folder_name)
+        folder_name = 'result' + os.path.sep + self.id + \
+            os.path.sep + output_name + os.path.sep
 
         cm = confusion_matrix(Y_test, Y_predict)
         np.savetxt(folder_name + 'cm.txt', cm,
@@ -281,7 +284,7 @@ class MainModel(object):
 
         return trainX, trainY, testX, testY
 
-    def save_model(self, model):
+    def save_model(self, model, c_mm_acc, c_anti_acc):
         is_better = False
 
         with open('log.txt', 'r') as f:
@@ -296,7 +299,7 @@ class MainModel(object):
         if not is_better:
             try:
                 mm_acc, anti_acc = re.findall(pattern, last_log)
-                if float(mm_acc) + float(anti_acc) < self.mm_acc + self.anti_acc:
+                if float(mm_acc) + float(anti_acc) < c_mm_acc + c_anti_acc:
                     is_better = True
             except ValueError:
                 is_better = True
@@ -309,7 +312,7 @@ class MainModel(object):
             model.save(folder + 'model.h5')
             with open(folder + 'labels.txt', 'w') as outfile:
                 outfile.write(str(self.label_dict))
-            if plot:
+            if PLOT:
                 plot_model(model, to_file=folder +
                            'model.png', show_shapes=True)
 
