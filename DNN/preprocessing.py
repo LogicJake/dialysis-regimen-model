@@ -187,5 +187,6 @@ class Preprocessing(object):
 
 
 if __name__ == '__main__':
-    preprocessing = Preprocessing('dataset/input.csv', 'dataset/output.csv')
+    preprocessing = Preprocessing(
+        '../dataset/input.csv', '../dataset/output.csv')
     preprocessing.reformat()
