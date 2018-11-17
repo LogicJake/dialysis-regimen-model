@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-14 15:19:47
+# @Last Modified time: 2018-11-17 20:40:46
 from keras.engine import Model, Input
-from loss_history import LossHistory
+from .loss_history import LossHistory
 import numpy as np
 import pandas as pd
 from keras.layers import Dense, BatchNormalization
@@ -17,8 +17,12 @@ import os
 import time
 import logging
 import re
-# set level to error to filter tensorflow's warnings
-logging.basicConfig(filename='log.txt', level=logging.ERROR)
+
+pwd = os.path.abspath(os.path.dirname(__file__)) + os.path.sep
+td_path = pwd + 'transformed_dataset' + os.path.sep + 'data.csv'
+model_dir = pwd + 'model'
+res_dir = pwd + 'result'
+
 
 # seed = 7
 # np.random.seed(seed)
@@ -33,20 +37,37 @@ EPOCHS = 1
 DECAY = 0.004
 
 
-class MainModel(object):
+def get_logger():
+    logger = logging.getLogger('DNN')
+    logger.setLevel(logging.INFO)
+    # create file handler
+    log_path = pwd + "log.txt"
+    fh = logging.FileHandler(log_path)
+
+    # create formatter
+    fmt = "%(asctime)s-%(name)s-%(levelname)s: %(message)s"
+    datefmt = "%Y/%d/%m %H:%M:%S"
+    formatter = logging.Formatter(fmt, datefmt)
+
+    # add handler and formatter to logger
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    return logger
+
+
+class Model(object):
     """the model of other output('flow' not included)"""
 
-    def __init__(self, path):
-        super(MainModel, self).__init__()
-        self.path = path
+    def __init__(self):
+        super(Model, self).__init__()
         self.id = str(int(time.time()))
         # the paramter about label encoder
         self.label_dict = {}
         self.label_num = {}
 
-        dirs = ['model', 'result',
-                'result' + os.path.sep + self.id + os.path.sep + 'mm',
-                'result' + os.path.sep + self.id + os.path.sep + 'anti']
+        dirs = [model_dir, res_dir,
+                res_dir + os.path.sep + self.id + os.path.sep + 'mm',
+                res_dir + os.path.sep + self.id + os.path.sep + 'anti']
         for dir in dirs:
             if not os.path.exists(dir):
                 os.makedirs(dir)
@@ -156,7 +177,8 @@ class MainModel(object):
         model = Model(inputs=input_laywer, outputs=[mm_output, anti_output])
         return model
 
-    def train(self):
+    def train(self, path):
+        self.path = path
         dataframe = pd.read_csv(self.path, header=None, names=['sex', 'age', 'dweight', 'cweight', 'd_0', 'd_1', 'd_2', 'd_3', 'd_4', 'd_5', 'd_6', 'd_7', 'd_8', 'd_9', 'd_10', 'd_11', 'd_12',
                                                                'd_13', 'd_14', 'd_15', 'd_16', 'c_0', 'c_1', 'c_2', 'c_3', 'c_4', 'c_5', 'c_6', 'c_7', 'c_8', 'c_9', 'c_10', 'c_11', 'c_12', 'c_13', 'c_14', 'c_15', 'c_16', 'mm', 'anti'])
 
@@ -185,8 +207,7 @@ class MainModel(object):
         anti_acc = history.anti_val_acc[-1]
         self.save_model(model, mm_acc, anti_acc)
 
-        logger = logging.getLogger()
-        logger.setLevel(logging.INFO)
+        logger = get_logger()
         logger.info(self.id + ': training over. mm acc: {' + str(mm_acc) + '}\tanti acc: {' + str(anti_acc) +
                     '}\thyperparameters are ' + str(LR) + '\t' +
                     str(DECAY) + '\t' + str(EPOCHS) + '\t' + str(BS))
@@ -215,10 +236,10 @@ class MainModel(object):
         with open(folder_name + 'cr.txt', 'w') as outfile:
             outfile.write(cr)
 
-    def predict(self, X, load):
+    def predict(self, X, load=True):
         if load:
-            model = load_model('model/model.h5')
-            with open('model/labels.txt', 'r') as f:
+            model = load_model(model_dir + os.path.sep + 'model.h5')
+            with open(model_dir + os.path.sep + 'labels.txt', 'r') as f:
                 a = f.read()
                 label_dict = eval(a)
         else:
@@ -318,6 +339,6 @@ class MainModel(object):
 
 
 if __name__ == '__main__':
-    model = MainModel('transformed_dataset/final.csv')
-    model.train()
+    model = Model()
+    model.train('transformed_dataset/final.csv')
     model.analyse()

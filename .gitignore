@@ -2,3 +2,8 @@ __pycache__/
 .idea/
 *.pyc
 record.txt
+\.tags
+
+\.tags_sorted_by_file
+
+predict_result\.csv

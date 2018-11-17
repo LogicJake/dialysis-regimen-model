@@ -10,9 +10,12 @@ from imblearn.over_sampling import SMOTE
 mm_top = 5
 anti_top = 6
 
+pwd = os.path.abspath(os.path.dirname(__file__))
+td_path = pwd + os.path.sep + 'transformed_dataset' + os.path.sep
+
 
 def create_dir():
-    tmp_dir = 'transformed_dataset'
+    tmp_dir = pwd + os.path.sep + 'transformed_dataset'
     if not os.path.exists(tmp_dir):
         os.makedirs(tmp_dir)
 
@@ -26,7 +29,21 @@ class Preprocessing(object):
         self.output_path = output_path
         create_dir()
 
+    def read_mapping(self):
+        disease = None
+        complication = None
+
+        with open('../feature_mapping.txt', 'r') as f:
+            content = f.readline()
+            content = eval(content)
+            disease = content['disease']
+            complication = content['complication']
+
+        return disease, complication
+
     def reformat_input(self):
+        disease, complication = self.read_mapping()
+
         df = pd.read_csv(self.input_path)
         df = df[['id', 'sex', 'age', 'disease',
                  'complication', 'dweight', 'cweight']]
@@ -65,27 +82,17 @@ class Preprocessing(object):
             axis=1)
 
         # one-hot
-        disease = []
-        df.apply((lambda row: disease.extend(row['disease'].split(',')) if type(
-            row['disease']) != float else 1), axis=1)
-        disease = list(set(disease))
-        disease.sort()
         for index, d in enumerate(disease):
             df['d_' + str(index)] = df.apply(
                 lambda row: 1 if type(row['disease']) == str and d in row['disease'] else 0, axis=1)
         df = df.drop(['disease'], axis=1)
 
-        complication = []
-        df.apply((lambda row: complication.extend(row['complication'].split(',')) if type(
-            row['complication']) != float else 1), axis=1)
-        complication = list(set(complication))
-        complication.sort()
         for index, c in enumerate(complication):
             df['c_' + str(index)] = df.apply(
                 lambda row: 1 if type(row['complication']) == str and c in row['complication'] else 0, axis=1)
 
         df = df.drop(['complication'], axis=1)
-        df.to_csv('transformed_dataset/input.csv', index=False)
+        df.to_csv(td_path + 'input.csv', index=False)
 
         return df
 
@@ -113,7 +120,7 @@ class Preprocessing(object):
         df['mm'] = df['mm'].map(lambda x: x if x in mm_preserve else 'other')
         df['anti'] = df['anti'].map(
             lambda x: x if x in anti_preserve else 'other')
-        df.to_csv('transformed_dataset/output.csv', index=False)
+        df.to_csv(td_path + 'output.csv', index=False)
         return df
 
     def reformat(self):
@@ -128,14 +135,14 @@ class Preprocessing(object):
         # not sample data to test model
         df_test = df_concat.sample(frac=0.05, replace=False, axis=0)
         df_test = df_test.drop(columns=['anti_add'])
-        df_test.to_csv('transformed_dataset/test.csv',
+        df_test.to_csv(td_path + 'test.csv',
                        index=False, header=False)
 
         df_other = df_concat.drop(df_test.index)
         df_sample = self.oversample(df_other)
         # drop anti-add
         df_sample = df_sample.drop(columns=['anti_add'])
-        df_sample.to_csv('transformed_dataset/final.csv',
+        df_sample.to_csv(td_path + 'final.csv',
                          index=False, header=False)
 
     def label2number(self, df, name):

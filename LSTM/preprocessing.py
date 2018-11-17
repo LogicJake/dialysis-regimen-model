@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-11 15:37:32
-# @Last Modified time: 2018-11-14 10:56:27
+# @Last Modified time: 2018-11-17 15:27:53
 import os
 import pandas as pd
 import numpy as np
@@ -26,7 +26,21 @@ class Preprocessing(object):
         self.output_path = output_path
         create_dir()
 
+    def read_mapping(self):
+        disease = None
+        complication = None
+
+        with open('../feature_mapping.txt', 'r') as f:
+            content = f.readline()
+            content = eval(content)
+            disease = content['disease']
+            complication = content['complication']
+
+        return disease, complication
+
     def reformat_input(self):
+        disease, complication = self.read_mapping()
+
         df = pd.read_csv(self.input_path)
         df = df[['id', 'uid', 'sex', 'age', 'disease',
                  'complication', 'dweight', 'cweight', 'date']]
@@ -65,21 +79,11 @@ class Preprocessing(object):
             axis=1)
 
         # one-hot
-        disease = []
-        df.apply((lambda row: disease.extend(row['disease'].split(',')) if type(
-            row['disease']) != float else 1), axis=1)
-        disease = list(set(disease))
-        disease.sort()
         for index, d in enumerate(disease):
             df['d_' + str(index)] = df.apply(
                 lambda row: 1 if type(row['disease']) == str and d in row['disease'] else 0, axis=1)
         df = df.drop(['disease'], axis=1)
 
-        complication = []
-        df.apply((lambda row: complication.extend(row['complication'].split(',')) if type(
-            row['complication']) != float else 1), axis=1)
-        complication = list(set(complication))
-        complication.sort()
         for index, c in enumerate(complication):
             df['c_' + str(index)] = df.apply(
                 lambda row: 1 if type(row['complication']) == str and c in row['complication'] else 0, axis=1)
