@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-17 20:40:46
+# @Last Modified time: 2018-11-17 22:28:09
 from keras.engine import Model, Input
-from .loss_history import LossHistory
 import numpy as np
 import pandas as pd
 from keras.layers import Dense, BatchNormalization
@@ -178,6 +177,7 @@ class Model(object):
         return model
 
     def train(self, path):
+        from loss_history import LossHistory
         self.path = path
         dataframe = pd.read_csv(self.path, header=None, names=['sex', 'age', 'dweight', 'cweight', 'd_0', 'd_1', 'd_2', 'd_3', 'd_4', 'd_5', 'd_6', 'd_7', 'd_8', 'd_9', 'd_10', 'd_11', 'd_12',
                                                                'd_13', 'd_14', 'd_15', 'd_16', 'c_0', 'c_1', 'c_2', 'c_3', 'c_4', 'c_5', 'c_6', 'c_7', 'c_8', 'c_9', 'c_10', 'c_11', 'c_12', 'c_13', 'c_14', 'c_15', 'c_16', 'mm', 'anti'])
