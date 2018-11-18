@@ -30,9 +30,9 @@ PLOT = True  # weather plot acc or loss
 VERBOSE = True  # weather print info during training
 
 # hyperparameters
-BS = 10000
+BS = 2000
 LR = 0.01
-EPOCHS = 1
+EPOCHS = 1000
 DECAY = 0.004
 
 
@@ -54,11 +54,11 @@ def get_logger():
     return logger
 
 
-class Model(object):
+class DNNModel(object):
     """the model of other output('flow' not included)"""
 
     def __init__(self):
-        super(Model, self).__init__()
+        super(DNNModel, self).__init__()
         self.id = str(int(time.time()))
         # the paramter about label encoder
         self.label_dict = {}
@@ -307,13 +307,16 @@ class Model(object):
 
     def save_model(self, model, c_mm_acc, c_anti_acc):
         is_better = False
-
-        with open('log.txt', 'r') as f:
-            lines = f.readlines()
-            if len(lines) == 0:
-                is_better = True
-            else:
-                last_log = lines[-1]
+	
+        try:
+            with open('log.txt', 'r') as f:
+                lines = f.readlines()
+                if len(lines) == 0:
+                    is_better = True
+                else:
+                    last_log = lines[-1]
+        except FileNotFoundError:
+            is_better = True
 
         pattern = re.compile(r'[{](.*?)[}]', re.S)
 
@@ -339,6 +342,6 @@ class Model(object):
 
 
 if __name__ == '__main__':
-    model = Model()
+    model = DNNModel()
     model.train('transformed_dataset/final.csv')
     model.analyse()

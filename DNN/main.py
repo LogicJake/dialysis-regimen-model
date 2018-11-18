@@ -3,7 +3,7 @@
 # @Date:   2018-10-29 18:53:24
 # @Last Modified time: 2018-11-14 15:05:10
 from preprocessing import Preprocessing
-from model import MainModel
+from model import DNNModel
 import os
 
 
@@ -12,6 +12,6 @@ if __name__ == '__main__':
         '../dataset/input.csv', '../dataset/output.csv')
     preprocessing.reformat()
 
-    model = MainModel('transformed_dataset/final.csv')
-    model.train()
+    model = DNNModel()
+    model.train('transformed_dataset/final.csv')
     model.analyse()

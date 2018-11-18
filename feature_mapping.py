@@ -13,7 +13,6 @@ path = 'dataset' + os.path.sep + 'input.csv'
 
 def feature_mapping():
     df = pd.read_csv(path)
-    print(df.head())
     disease = []
     df.apply((lambda row: disease.extend(row['disease'].split(',')) if type(
         row['disease']) != float and len(row['disease']) > 1 else 1), axis=1)

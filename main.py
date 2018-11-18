@@ -115,7 +115,7 @@ def predict(path):
     df['dweight'] = final_output['dweight'].fillna(0) + df['dweight']
 
     # predict labels except flow
-    DNN_model = dnn_m.Model()
+    DNN_model = dnn_m.DNNModel()
     mm, anti = DNN_model.predict(df.values)
     machine = []
     mode = []
@@ -135,6 +135,7 @@ def predict(path):
         else:
             anti_type.append(a.split(':')[0])
             anti_first.append(a.split(':')[1])
+    print(mode)
     final_output['mode'] = mode
     final_output['machine'] = machine
     final_output['anti_type'] = anti_type
