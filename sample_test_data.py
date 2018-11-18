@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-18 14:34:40
-# @Last Modified time: 2018-11-18 17:26:34
+# @Last Modified time: 2018-11-18 20:35:16
 # from dataset sample data for testing
 import pandas as pd
 import numpy as np
@@ -103,6 +103,7 @@ def sample_lstm(n=10):
     sample_input.to_csv(save_path + 'example2.csv', index=False)
     sample_output.to_csv(save_path + 'label2.csv', index=False)
 
+
 if __name__ == '__main__':
     sample(100)
-    sample_lstm(1)
+    sample_lstm(100)
