@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-10-29 18:53:00
-# @Last Modified time: 2018-11-17 22:28:09
+# @Last Modified time: 2018-11-18 14:08:15
 from keras.engine import Model, Input
 import numpy as np
 import pandas as pd
@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 from keras.models import load_model
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
+import h5py
 import os
 import time
 import logging
@@ -238,6 +239,10 @@ class DNNModel(object):
 
     def predict(self, X, load=True):
         if load:
+            with h5py.File(model_dir + os.path.sep + 'model.h5', 'a') as f:
+                if 'optimizer_weights' in f.keys():
+                    del f['optimizer_weights']
+
             model = load_model(model_dir + os.path.sep + 'model.h5')
             with open(model_dir + os.path.sep + 'labels.txt', 'r') as f:
                 a = f.read()
@@ -307,7 +312,7 @@ class DNNModel(object):
 
     def save_model(self, model, c_mm_acc, c_anti_acc):
         is_better = False
-	
+
         try:
             with open('log.txt', 'r') as f:
                 lines = f.readlines()

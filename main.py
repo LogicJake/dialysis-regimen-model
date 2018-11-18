@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-16 17:03:42
-# @Last Modified time: 2018-11-17 20:43:37
+# @Last Modified time: 2018-11-18 14:07:06
 import argparse
 import os
 import logging
@@ -123,19 +123,19 @@ def predict(path):
     anti_first = []
     for a in mm:
         if a == 'other':
-            anti_type.append(a)
-            anti_first.append(a)
+            machine.append(a)
+            mode.append(a)
         else:
-            machine.append(a.split(':')[0])
-            mode.append(a.split(':')[1])
+            machine.append(a.split('*')[0])
+            mode.append(a.split('*')[1])
     for a in anti:
         if a == 'other':
             anti_type.append(a)
             anti_first.append(a)
         else:
-            anti_type.append(a.split(':')[0])
-            anti_first.append(a.split(':')[1])
-    print(mode)
+            anti_type.append(a.split('*')[0])
+            anti_first.append(a.split('*')[1])
+
     final_output['mode'] = mode
     final_output['machine'] = machine
     final_output['anti_type'] = anti_type
