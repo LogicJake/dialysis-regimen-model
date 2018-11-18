@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-16 17:03:42
-# @Last Modified time: 2018-11-18 15:32:45
+# @Last Modified time: 2018-11-18 15:48:37
 import argparse
 import os
 import logging
@@ -69,6 +69,41 @@ def one_hot(df, name, names):
     return df
 
 
+def predict_flow(final_output):
+    # predict flow
+    machine, mode, anti_type, anti_first = read_pf_mapping()
+
+    output_features = final_output.copy()
+    output_features = output_features[
+        ['machine', 'mode', 'anti_type', 'anti_first']]
+
+    output_features = output_features[(output_features['machine'] != 'other') & (output_features[
+        'mode'] != 'other') & (output_features['anti_type'] != 'other') & (output_features['anti_first'] != 'other')]
+    if output_features.shape[0] != 0:
+        output_features = one_hot(output_features,  'machine', machine)
+        output_features = one_hot(output_features, 'mode', mode)
+        output_features = one_hot(output_features, 'anti_type', anti_type)
+        output_features = one_hot(output_features, 'anti_first', anti_first)
+
+        pf_model = pf_m.Model()
+        res = pf_model.predict(output_features)
+        output_features['flow'] = res
+        final_output['flow'] = output_features['flow']
+    final_output = final_output.round({'dweight': 1})
+    final_output['flow'].fillna('other', inplace=True)
+    final_output.to_csv('test_data' + os.path.sep + 'result1.csv', index=False)
+
+
+def predict_dweight(df, final_output):
+    dweight = df[(df['dweight'] == 0)]
+    dweight = dweight.drop(['dweight'], axis=1)
+    pw_model = pw_m.model()
+    if dweight.shape[0] != 0:
+        res = pw_model.predict(dweight)
+        final_output['dweight'] = dweight['cweight'] + res
+        df['dweight'] = final_output['dweight'].fillna(0) + df['dweight']
+
+
 def predict(path):
     final_output = pd.DataFrame(
         columns=['dweight', 'mode', 'machine', 'flow', 'anti_type', 'anti_first'])
@@ -104,14 +139,7 @@ def predict(path):
             lambda row: 1 if type(row['complication']) == str and c in row['complication'] else 0, axis=1)
     df = df.drop(['complication'], axis=1)
 
-    # predict dweight
-    dweight = df[(df['dweight'] == 0)]
-    dweight = dweight.drop(['dweight'], axis=1)
-    pw_model = pw_m.model()
-    if dweight.shape[0] != 0:
-        res = pw_model.predict(dweight)
-        final_output['dweight'] = dweight['cweight'] + res
-        df['dweight'] = final_output['dweight'].fillna(0) + df['dweight']
+    predict_dweight(df, final_output)
 
     # predict labels except flow
     DNN_model = dnn_m.DNNModel()
@@ -139,35 +167,7 @@ def predict(path):
     final_output['machine'] = machine
     final_output['anti_type'] = anti_type
     final_output['anti_first'] = anti_first
-
-    # predict flow
-    machine, mode, anti_type, anti_first = read_pf_mapping()
-
-    output_features = final_output.copy()
-    output_features = output_features[
-        ['machine', 'mode', 'anti_type', 'anti_first']]
-    # just for test
-    # output_features['machine'][2:8] = '德朗透析器B-14P'
-    # output_features['mode'][2:8] = 'HD'
-    # output_features['anti_type'][2:8] = '活多史4250u(剂量单位:u)'
-    # output_features['anti_first'][2:8] = '4250.0'
-
-    output_features = output_features[(output_features['machine'] != 'other') & (output_features[
-        'mode'] != 'other') & (output_features['anti_type'] != 'other') & (output_features['anti_first'] != 'other')]
-    if output_features.shape[0] != 0:
-        output_features = one_hot(output_features,  'machine', machine)
-        output_features = one_hot(output_features, 'mode', mode)
-        output_features = one_hot(output_features, 'anti_type', anti_type)
-        output_features = one_hot(output_features, 'anti_first', anti_first)
-
-        pf_model = pf_m.Model()
-        res = pf_model.predict(output_features)
-        output_features['flow'] = res
-        final_output['flow'] = output_features['flow']
-    final_output = final_output.round({'dweight': 1})
-    final_output['flow'].fillna('other', inplace=True)
-    final_output.to_csv('test_data' + os.path.sep + 'result1.csv', index=False)
-
+    predict_flow(final_output)
 
 if __name__ == "__main__":
     args = parse_args()
