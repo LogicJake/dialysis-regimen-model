@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-18 14:34:40
-# @Last Modified time: 2018-11-18 20:35:16
+# @Last Modified time: 2018-11-18 21:00:15
 # from dataset sample data for testing
 import pandas as pd
 import numpy as np
 import os
 import random
-from LSTM.preprocessing import series_length
+from model.LSTM.preprocessing import series_length
 save_path = 'test_data' + os.path.sep
 
 

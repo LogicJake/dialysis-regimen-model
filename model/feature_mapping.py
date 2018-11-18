@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-17 15:03:56
-# @Last Modified time: 2018-11-17 15:19:00
+# @Last Modified time: 2018-11-18 21:00:49
 '''
 this file products feature_mapping.txt
 '''
 
 import pandas as pd
 import os
-path = 'dataset' + os.path.sep + 'input.csv'
+path = '..' + os.path.sep + 'dataset' + os.path.sep + 'input.csv'
 
 
 def feature_mapping():
