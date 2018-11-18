@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-16 17:03:42
-# @Last Modified time: 2018-11-18 14:24:07
+# @Last Modified time: 2018-11-18 15:32:45
 import argparse
 import os
 import logging
 import pandas as pd
 import numpy as np
-# import DNN.preprocessing as dnn_p
 import DNN.model as dnn_m
-# import LSTM.preprocessing as lstm_p
 # import LSTM.model as lstm_m
-
 import predict_dweight.model as pw_m
-# import predict_flow.preprocessing as pf_p
 import predict_flow.model as pf_m
 
 logging.basicConfig(level=logging.INFO,
@@ -27,8 +23,11 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="model for renal dialysis regimen")
 
-    parser.add_argument('-p', '--path', type=str,
+    parser.add_argument('-p', '--path', type=str, required=True,
                         help='location of predicting file')
+
+    parser.add_argument('-t', '--time', type=bool, default=False,
+                        help='whether use LSTM model')
     return parser.parse_args()
 
 
@@ -109,9 +108,10 @@ def predict(path):
     dweight = df[(df['dweight'] == 0)]
     dweight = dweight.drop(['dweight'], axis=1)
     pw_model = pw_m.model()
-    res = pw_model.predict(dweight)
-    final_output['dweight'] = dweight['cweight'] + res
-    df['dweight'] = final_output['dweight'].fillna(0) + df['dweight']
+    if dweight.shape[0] != 0:
+        res = pw_model.predict(dweight)
+        final_output['dweight'] = dweight['cweight'] + res
+        df['dweight'] = final_output['dweight'].fillna(0) + df['dweight']
 
     # predict labels except flow
     DNN_model = dnn_m.DNNModel()
@@ -171,7 +171,6 @@ def predict(path):
 
 if __name__ == "__main__":
     args = parse_args()
-    mode = args.mode
 
     path = args.path
     if not os.path.exists(path):
