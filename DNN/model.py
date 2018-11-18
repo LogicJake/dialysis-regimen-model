@@ -314,7 +314,7 @@ class DNNModel(object):
         is_better = False
 
         try:
-            with open('log.txt', 'r') as f:
+            with open(pwd + 'log.txt', 'r') as f:
                 lines = f.readlines()
                 if len(lines) == 0:
                     is_better = True

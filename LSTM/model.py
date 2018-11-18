@@ -26,7 +26,7 @@ PLOT = False
 
 LR = 0.01
 DECAY = 0.004
-EPOCHS = 1000
+EPOCHS = 500
 BS = 1000
 VERBOSE = 1
 UNITS = 50
@@ -205,12 +205,15 @@ class LSTMModel(object):
         '''
         is_better = False
 
-        with open(pwd + 'log.txt', 'r') as f:
-            lines = f.readlines()
-            if len(lines) == 0:
-                is_better = True
-            else:
-                last_log = lines[-1]
+        try:
+            with open(pwd + 'log.txt', 'r') as f:
+                lines = f.readlines()
+                if len(lines) == 0:
+                    is_better = True
+                else:
+                    last_log = lines[-1]
+        except FileNotFoundError:
+            is_better = True
 
         if not is_better:
             try:

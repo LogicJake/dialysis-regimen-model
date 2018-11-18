@@ -9,6 +9,5 @@ if __name__ == '__main__':
         '../dataset/input.csv', '../dataset/output.csv')
     preprocessing.reformat()
 
-    model = LSTMModel('transformed_dataset/final.csv')
-    model = LSTMModel('transformed_dataset/final.csv')
+    model = LSTMModel()
     model.train()
