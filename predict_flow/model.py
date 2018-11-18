@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-16 10:10:15
-# @Last Modified time: 2018-11-17 20:14:39
+# @Last Modified time: 2018-11-18 18:59:40
 from sklearn import svm
 import pandas as pd
 from sklearn.metrics import confusion_matrix
@@ -74,5 +74,5 @@ class Model():
 
 
 if __name__ == '__main__':
-    model = model()
+    model = Model()
     model.train()

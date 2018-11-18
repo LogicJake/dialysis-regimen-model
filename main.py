@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-16 17:03:42
-# @Last Modified time: 2018-11-18 15:48:37
+# @Last Modified time: 2018-11-18 19:42:08
 import argparse
 import os
 import logging
 import pandas as pd
 import numpy as np
 import DNN.model as dnn_m
-# import LSTM.model as lstm_m
+import LSTM.model as lstm_m
 import predict_dweight.model as pw_m
 import predict_flow.model as pf_m
+from LSTM.preprocessing import series_length
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s-%(name)s-%(levelname)s: %(message)s',
@@ -26,7 +27,7 @@ def parse_args():
     parser.add_argument('-p', '--path', type=str, required=True,
                         help='location of predicting file')
 
-    parser.add_argument('-t', '--time', type=bool, default=False,
+    parser.add_argument('-l', '--lstm', type=bool, default=False,
                         help='whether use LSTM model')
     return parser.parse_args()
 
@@ -61,6 +62,19 @@ def read_pf_mapping():
     return machine, mode, anti_type, anti_first
 
 
+def read_LSTM_mapping():
+    mm = None
+    anti = None
+
+    with open('LSTM/model/labels.txt', 'r') as f:
+        content = f.readline()
+        content = eval(content)
+        mm = content['mm']
+        anti = content['anti']
+
+    return mm, anti
+
+
 def one_hot(df, name, names):
     for index, d in enumerate(names):
         df[name + '+' + str(index)] = df.apply(
@@ -91,7 +105,7 @@ def predict_flow(final_output):
         final_output['flow'] = output_features['flow']
     final_output = final_output.round({'dweight': 1})
     final_output['flow'].fillna('other', inplace=True)
-    final_output.to_csv('test_data' + os.path.sep + 'result1.csv', index=False)
+    return final_output
 
 
 def predict_dweight(df, final_output):
@@ -167,13 +181,104 @@ def predict(path):
     final_output['machine'] = machine
     final_output['anti_type'] = anti_type
     final_output['anti_first'] = anti_first
+    final_output = predict_flow(final_output)
+    final_output.to_csv('test_data' + os.path.sep + 'result1.csv', index=False)
+
+
+def predict_lstm(path):
+    final_output = pd.DataFrame(
+        columns=['mode', 'machine', 'flow', 'anti_type', 'anti_first'])
+
+    df = pd.read_csv(path)
+    assert(df.shape[0] % series_length == 0)
+    n = df.shape[0] / series_length
+    n = int(n)
+
+    aggs = []
+    for i in range(n):
+        start = i * series_length
+        end = (i + 1) * series_length
+        g = df.iloc[start:end]
+        g_1 = g[['sex',  'age', 'disease', 'complication', 'dweight', 'cweight']]
+        g_2 = g[['mode', 'machine', 'anti_type', 'anti_first']]
+
+        sex_mapping = {
+            '女': 0,
+            '男': 1
+        }
+
+        # change the value of sex to number
+        g_1['sex'] = g_1['sex'].map(sex_mapping)
+
+        disease, complication = read_mapping()
+        for index, d in enumerate(disease):
+            g_1['d_' + str(index)] = g_1.apply(
+                lambda row: 1 if type(row['disease']) == str and d in row['disease'] else 0, axis=1)
+        g_1 = g_1.drop(['disease'], axis=1)
+
+        for index, c in enumerate(complication):
+            g_1['c_' + str(index)] = g_1.apply(
+                lambda row: 1 if type(row['complication']) == str and c in row['complication'] else 0, axis=1)
+        g_1 = g_1.drop(['complication'], axis=1)
+
+        g_2['mm'] = g_2['machine'].str.cat(g_2['mode'], sep='*')
+        g_2 = g_2.drop(['machine', 'mode'], axis=1)
+        g_2['anti_first'] = g_2['anti_first'].map(lambda x: str(x))
+        g_2['anti'] = g_2['anti_type'].str.cat(g_2['anti_first'], sep='*')
+        g_2 = g_2.drop(['anti_first', 'anti_type'], axis=1)
+
+        mm, anti = read_LSTM_mapping()
+        for index, c in mm.items():
+            g_2['mm?' + str(c)] = g_2.apply(
+                lambda row: 1 if type(row['mm']) == str and c in row['mm'] else 0, axis=1)
+        for index, c in anti.items():
+            g_2['anti?' + str(c)] = g_2.apply(
+                lambda row: 1 if type(row['anti']) == str and c in row['anti'] else 0, axis=1)
+        g_2 = g_2.drop(['mm'], axis=1)
+        g_2 = g_2.drop(['anti'], axis=1)
+
+        g = pd.concat([g_1, g_2], axis=1)
+        series = []
+        for i in range(series_length):
+            series.append(g.shift(-i))
+        agg = pd.concat(series, axis=1)
+        agg.dropna(inplace=True)
+        aggs.append(agg)
+
+    df_aggs = pd.concat(aggs, axis=1)
+    lstm_model = lstm_m.LSTMModel()
+
+    X = df_aggs.values
+    X = X.reshape(
+        (X.shape[0], series_length, int(X.shape[1] / series_length)))
+    mm, anti = lstm_model.predict(X)
+    machine = []
+    mode = []
+    anti_type = []
+    anti_first = []
+    for a in mm:
+        machine.append(a.split('*')[0])
+        mode.append(a.split('*')[1])
+    for a in anti:
+        anti_type.append(a.split('*')[0])
+        anti_first.append(a.split('*')[1])
+    final_output['mode'] = mode
+    final_output['machine'] = machine
+    final_output['anti_type'] = anti_type
+    final_output['anti_first'] = anti_first
     predict_flow(final_output)
+    final_output = predict_flow(final_output)
+    final_output.to_csv('test_data' + os.path.sep + 'result2.csv', index=False)
 
 if __name__ == "__main__":
     args = parse_args()
 
+    lstm = args.lstm
     path = args.path
     if not os.path.exists(path):
         logging.error("'%s' does not exist", path)
         exit(-1)
-    predict(path)
+    if not lstm:
+        predict(path)
+    else:
+        predict_lstm(path)

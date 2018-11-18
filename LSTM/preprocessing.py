@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-11 15:37:32
-# @Last Modified time: 2018-11-17 15:27:53
+# @Last Modified time: 2018-11-18 19:14:22
 import os
 import pandas as pd
 import numpy as np
@@ -103,10 +103,10 @@ class Preprocessing(object):
         df = df.drop(columns=['flow'])
 
         # merge output
-        df['mm'] = df['machine'].str.cat(df['mode'], sep=':')
+        df['mm'] = df['machine'].str.cat(df['mode'], sep='*')
         df = df.drop(['machine', 'mode'], axis=1)
         df['anti_first'] = df['anti_first'].map(lambda x: str(x))
-        df['anti'] = df['anti_type'].str.cat(df['anti_first'], sep=':')
+        df['anti'] = df['anti_type'].str.cat(df['anti_first'], sep='*')
         df = df.drop(['anti_first', 'anti_type'], axis=1)
 
         mm_count = df['mm'].value_counts()
@@ -137,7 +137,7 @@ class Preprocessing(object):
         anti_num = len(data['anti'].unique())
 
         encoded_columns = ['mm', 'anti']
-        data = pd.get_dummies(data, columns=encoded_columns, prefix_sep='+')
+        data = pd.get_dummies(data, columns=encoded_columns, prefix_sep='?')
 
         col_name = data.columns.values.tolist()
         input_col = col_name[1:]

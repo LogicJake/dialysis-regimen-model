@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-14 15:22:49
+# @Last Modified time: 2018-11-18 19:48:58
 import os
 import time
 
@@ -13,12 +13,14 @@ from keras.utils import plot_model
 from keras.models import load_model
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
-from preprocessing import series_length
-from loss_history import LossHistory
 import logging
 import re
 
-logging.basicConfig(filename='log.txt', level=logging.ERROR)
+pwd = os.path.abspath(os.path.dirname(__file__)) + os.path.sep
+td_path = pwd + 'transformed_dataset' + os.path.sep + 'final.csv'
+model_dir = pwd + 'model' + os.path.sep
+res_dir = pwd + 'result' + os.path.sep
+
 
 PLOT = False
 
@@ -31,24 +33,43 @@ UNITS = 50
 RD = 0.2
 
 
+def get_logger():
+    logger = logging.getLogger('LSTM')
+    logger.setLevel(logging.INFO)
+    # create file handler
+    log_path = pwd + "log.txt"
+    fh = logging.FileHandler(log_path)
+
+    # create formatter
+    fmt = "%(asctime)s-%(name)s-%(levelname)s: %(message)s"
+    datefmt = "%Y/%d/%m %H:%M:%S"
+    formatter = logging.Formatter(fmt, datefmt)
+
+    # add handler and formatter to logger
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    return logger
+
+
 class LSTMModel(object):
 
-    def __init__(self, path):
+    def __init__(self):
         super(LSTMModel, self).__init__()
-        self.path = path
         self.id = str(int(time.time()))
         self.label_dict = {}
         self.label_num = {}
 
         # make required Folder
-        dirs = ['model', 'result' + os.path.sep + self.id + os.path.sep +
-                'mm', 'result' + os.path.sep + self.id + os.path.sep + 'anti']
+        dirs = [model_dir, res_dir + self.id + os.path.sep +
+                'mm', res_dir + self.id + os.path.sep + 'anti']
         for dir in dirs:
             if not os.path.exists(dir):
                 os.makedirs(dir)
 
     def train(self):
-        df = pd.read_csv(self.path)
+        from loss_history import LossHistory
+        from preprocessing import series_length
+        df = pd.read_csv(td_path)
 
         '''
         determine the number of output based on quantity of colunms end with '(t)'
@@ -110,7 +131,7 @@ class LSTMModel(object):
         model.fit(trainX, trainY, epochs=EPOCHS, batch_size=BS, validation_data=(
             testX, testY), verbose=VERBOSE,  callbacks=[history])
 
-        history.save_loss(PLOT, 'result' + os.path.sep +
+        history.save_loss(PLOT, res_dir +
                           self.id + os.path.sep)
         self.model = model
         self.history = history
@@ -119,8 +140,7 @@ class LSTMModel(object):
         anti_acc = history.anti_val_acc[-1]
         self.save_model(model, mm_acc, anti_acc)
 
-        logger = logging.getLogger()
-        logger.setLevel(logging.INFO)
+        logger = get_logger()
         logger.info(self.id + ': training over. mm acc: {' + str(mm_acc) + '}\tanti acc: {' + str(anti_acc) +
                     '}\thyperparameters are ' + str(LR) + '\t' +
                     str(DECAY) + '\t' + str(EPOCHS) + '\t' + str(BS) + '\t' + str(series_length))
@@ -138,10 +158,10 @@ class LSTMModel(object):
 
         return [Y_mm, Y_anti]
 
-    def predict(self, X, load):
+    def predict(self, X, load=True):
         if load:
-            model = load_model('model/model.h5')
-            with open('model/labels.txt', 'r') as f:
+            model = load_model(model_dir + 'model.h5')
+            with open(model_dir + 'labels.txt', 'r') as f:
                 a = f.read()
                 label_dict = eval(a)
         else:
@@ -172,8 +192,8 @@ class LSTMModel(object):
             index = 0
             label = {}
             for column_name in columns:
-                if column_name.startswith(column + "+"):
-                    label[index] = column_name.split('+')[1][:-3]
+                if column_name.startswith(column + "?"):
+                    label[index] = column_name.split('?')[1][:-3]
                     index += 1
             # save the correspondence between names and indexes
             self.label_dict[column] = label
@@ -185,7 +205,7 @@ class LSTMModel(object):
         '''
         is_better = False
 
-        with open('log.txt', 'r') as f:
+        with open(pwd + 'log.txt', 'r') as f:
             lines = f.readlines()
             if len(lines) == 0:
                 is_better = True
@@ -202,16 +222,14 @@ class LSTMModel(object):
                 is_better = True
 
         if is_better:
-            folder = 'model' + os.path.sep
-
-            model.save(folder + 'model.h5')
-            with open(folder + 'labels.txt', 'w') as outfile:
+            model.save(model_dir + 'model.h5')
+            with open(model_dir + 'labels.txt', 'w') as outfile:
                 outfile.write(str(self.label_dict))
                 if PLOT:
-                    plot_model(model, to_file=folder +
+                    plot_model(model, to_file=model_dir +
                                'model.png', show_shapes=True)
 
 
 if __name__ == '__main__':
-    model = LSTMModel('transformed_dataset/final.csv')
+    model = LSTMModel()
     model.train()
