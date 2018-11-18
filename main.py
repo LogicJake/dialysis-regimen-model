@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-16 17:03:42
-# @Last Modified time: 2018-11-18 19:42:08
+# @Last Modified time: 2018-11-18 20:34:53
 import argparse
 import os
 import logging
@@ -194,50 +194,51 @@ def predict_lstm(path):
     n = df.shape[0] / series_length
     n = int(n)
 
+    df_1 = df[['sex',  'age', 'disease', 'complication', 'dweight', 'cweight']]
+    df_2 = df[['mode', 'machine', 'anti_type', 'anti_first']]
+
+    sex_mapping = {
+        '女': 0,
+        '男': 1
+    }
+
+    # change the value of sex to number
+    df_1['sex'] = df_1['sex'].map(sex_mapping)
+
+    disease, complication = read_mapping()
+    for index, d in enumerate(disease):
+        df_1['d_' + str(index)] = df_1.apply(
+            lambda row: 1 if type(row['disease']) == str and d in row['disease'] else 0, axis=1)
+    df_1 = df_1.drop(['disease'], axis=1)
+
+    for index, c in enumerate(complication):
+        df_1['c_' + str(index)] = df_1.apply(
+            lambda row: 1 if type(row['complication']) == str and c in row['complication'] else 0, axis=1)
+    df_1 = df_1.drop(['complication'], axis=1)
+
+    df_2['mm'] = df_2['machine'].str.cat(df_2['mode'], sep='*')
+    df_2 = df_2.drop(['machine', 'mode'], axis=1)
+    df_2['anti_first'] = df_2['anti_first'].map(lambda x: str(x))
+    df_2['anti'] = df_2['anti_type'].str.cat(df_2['anti_first'], sep='*')
+    df_2 = df_2.drop(['anti_first', 'anti_type'], axis=1)
+
+    mm, anti = read_LSTM_mapping()
+    for index, c in mm.items():
+        df_2['mm?' + str(c)] = df_2.apply(
+            lambda row: 1 if type(row['mm']) == str and c in row['mm'] else 0, axis=1)
+    for index, c in anti.items():
+        df_2['anti?' + str(c)] = df_2.apply(
+            lambda row: 1 if type(row['anti']) == str and c in row['anti'] else 0, axis=1)
+    df_2 = df_2.drop(['mm'], axis=1)
+    df_2 = df_2.drop(['anti'], axis=1)
+    df = pd.concat([df_1, df_2], axis=1)
+
     aggs = []
     for i in range(n):
         start = i * series_length
         end = (i + 1) * series_length
         g = df.iloc[start:end]
-        g_1 = g[['sex',  'age', 'disease', 'complication', 'dweight', 'cweight']]
-        g_2 = g[['mode', 'machine', 'anti_type', 'anti_first']]
 
-        sex_mapping = {
-            '女': 0,
-            '男': 1
-        }
-
-        # change the value of sex to number
-        g_1['sex'] = g_1['sex'].map(sex_mapping)
-
-        disease, complication = read_mapping()
-        for index, d in enumerate(disease):
-            g_1['d_' + str(index)] = g_1.apply(
-                lambda row: 1 if type(row['disease']) == str and d in row['disease'] else 0, axis=1)
-        g_1 = g_1.drop(['disease'], axis=1)
-
-        for index, c in enumerate(complication):
-            g_1['c_' + str(index)] = g_1.apply(
-                lambda row: 1 if type(row['complication']) == str and c in row['complication'] else 0, axis=1)
-        g_1 = g_1.drop(['complication'], axis=1)
-
-        g_2['mm'] = g_2['machine'].str.cat(g_2['mode'], sep='*')
-        g_2 = g_2.drop(['machine', 'mode'], axis=1)
-        g_2['anti_first'] = g_2['anti_first'].map(lambda x: str(x))
-        g_2['anti'] = g_2['anti_type'].str.cat(g_2['anti_first'], sep='*')
-        g_2 = g_2.drop(['anti_first', 'anti_type'], axis=1)
-
-        mm, anti = read_LSTM_mapping()
-        for index, c in mm.items():
-            g_2['mm?' + str(c)] = g_2.apply(
-                lambda row: 1 if type(row['mm']) == str and c in row['mm'] else 0, axis=1)
-        for index, c in anti.items():
-            g_2['anti?' + str(c)] = g_2.apply(
-                lambda row: 1 if type(row['anti']) == str and c in row['anti'] else 0, axis=1)
-        g_2 = g_2.drop(['mm'], axis=1)
-        g_2 = g_2.drop(['anti'], axis=1)
-
-        g = pd.concat([g_1, g_2], axis=1)
         series = []
         for i in range(series_length):
             series.append(g.shift(-i))
@@ -245,7 +246,7 @@ def predict_lstm(path):
         agg.dropna(inplace=True)
         aggs.append(agg)
 
-    df_aggs = pd.concat(aggs, axis=1)
+    df_aggs = pd.concat(aggs)
     lstm_model = lstm_m.LSTMModel()
 
     X = df_aggs.values
