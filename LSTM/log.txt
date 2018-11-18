@@ -1,1 +1,0 @@
-2018/18/11 20:12:09-LSTM-INFO: 1542542935: training over. mm acc: {0.9525179720039276}	anti acc: {0.964988006962289}	hyperparameters are 0.01	0.004	500	1000	7

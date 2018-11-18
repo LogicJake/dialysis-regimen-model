@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-16 10:10:26
-# @Last Modified time: 2018-11-17 15:26:23
+# @Last Modified time: 2018-11-18 20:50:12
 import os
 import pandas as pd
 import numpy as np
@@ -72,5 +72,5 @@ class Preprocessing(object):
 
 
 if __name__ == '__main__':
-    preprocessing = Preprocessing('../dataset/input.csv')
+    preprocessing = Preprocessing('../../dataset/input.csv')
     preprocessing.reformat()

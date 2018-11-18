@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-16 17:03:42
-# @Last Modified time: 2018-11-18 20:34:53
+# @Last Modified time: 2018-11-18 20:57:09
 import argparse
 import os
 import logging
 import pandas as pd
 import numpy as np
-import DNN.model as dnn_m
-import LSTM.model as lstm_m
-import predict_dweight.model as pw_m
-import predict_flow.model as pf_m
-from LSTM.preprocessing import series_length
+import model.DNN.model as dnn_m
+import model.LSTM.model as lstm_m
+import model.predict_dweight.model as pw_m
+import model.predict_flow.model as pf_m
+from model.LSTM.preprocessing import series_length
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s-%(name)s-%(levelname)s: %(message)s',
@@ -36,7 +36,7 @@ def read_mapping():
     disease = None
     complication = None
 
-    with open('feature_mapping.txt', 'r') as f:
+    with open('model/feature_mapping.txt', 'r') as f:
         content = f.readline()
         content = eval(content)
         disease = content['disease']
@@ -51,7 +51,7 @@ def read_pf_mapping():
     anti_type = None
     anti_first = None
 
-    with open('predict_flow/model/mapping.txt', 'r') as f:
+    with open('model/predict_flow/model/mapping.txt', 'r') as f:
         content = f.readline()
         content = eval(content)
         machine = content['machine']
@@ -66,7 +66,7 @@ def read_LSTM_mapping():
     mm = None
     anti = None
 
-    with open('LSTM/model/labels.txt', 'r') as f:
+    with open('model/LSTM/model/labels.txt', 'r') as f:
         content = f.readline()
         content = eval(content)
         mm = content['mm']

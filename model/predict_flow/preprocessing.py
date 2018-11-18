@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-16 10:10:26
-# @Last Modified time: 2018-11-17 19:40:18
+# @Last Modified time: 2018-11-18 20:53:58
 import os
 import pandas as pd
 
-pwd = os.path.abspath(os.path.dirname(__file__))
-td_path = pwd + os.path.sep + 'transformed_dataset' + os.path.sep
-model_path = pwd + os.path.sep + 'model' + os.path.sep
+pwd = os.path.abspath(os.path.dirname(__file__)) + os.path.sep
+td_path = pwd + 'transformed_dataset' + os.path.sep
+model_path = pwd + 'model' + os.path.sep
 
 
 class Preprocessing(object):
@@ -50,7 +50,7 @@ class Preprocessing(object):
         content['anti_first'] = anti_firsts
 
         if not os.path.exists(model_path):
-            os.path.makedirs(model_path)
+            os.makedirs(model_path)
         with open(model_path + 'mapping.txt', 'w') as f:
             f.write(str(content))
 
@@ -60,5 +60,5 @@ class Preprocessing(object):
         df.to_csv(td_path + 'data.csv', index=False)
 
 if __name__ == '__main__':
-    preprocessing = Preprocessing('../dataset/output.csv')
+    preprocessing = Preprocessing('../../dataset/output.csv')
     preprocessing.reformat()

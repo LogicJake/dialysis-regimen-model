@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-16 15:06:04
-# @Last Modified time: 2018-11-17 20:39:10
+# @Last Modified time: 2018-11-18 20:51:24
 from sklearn import svm
 from sklearn.model_selection import train_test_split
 from sklearn.externals import joblib
@@ -11,10 +11,10 @@ import os
 import numpy as np
 import logging
 
-model_dir = os.path.abspath(os.path.dirname(
-    __file__)) + os.path.sep + 'model' + os.path.sep
+
 pwd = os.path.abspath(os.path.dirname(__file__)) + os.path.sep
-td_path = pwd + os.path.sep + 'transformed_dataset' + os.path.sep + 'data.csv'
+model_dir = pwd + 'model' + os.path.sep
+td_path = pwd + 'transformed_dataset' + os.path.sep + 'data.csv'
 
 
 def get_logger():
@@ -65,7 +65,6 @@ class model():
 
         X_train, X_test, Y_train, Y_test = train_test_split(
             X, Y, test_size=0.3, random_state=777)
-        print(X_train.shape)
         model = svm.SVR(kernel='rbf', gamma='auto')
         model.fit(X_train, Y_train.ravel())
 
