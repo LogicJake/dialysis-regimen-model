@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-16 17:03:42
-# @Last Modified time: 2018-11-18 14:15:03
+# @Last Modified time: 2018-11-18 14:24:07
 import argparse
 import os
 import logging
@@ -26,8 +26,7 @@ def parse_args():
 
     parser = argparse.ArgumentParser(
         description="model for renal dialysis regimen")
-    parser.add_argument('-m', '--mode', type=str,
-                        choices=['file', 'array'], required=True)
+
     parser.add_argument('-p', '--path', type=str,
                         help='location of predicting file')
     return parser.parse_args()
@@ -174,11 +173,8 @@ if __name__ == "__main__":
     args = parse_args()
     mode = args.mode
 
-    if mode == 'file':
-        path = args.path
-        if not os.path.exists(path):
-            logging.error("'%s' does not exist", path)
-            exit(-1)
-        predict(path)
-    elif mode == 'array':
-        pass
+    path = args.path
+    if not os.path.exists(path):
+        logging.error("'%s' does not exist", path)
+        exit(-1)
+    predict(path)
