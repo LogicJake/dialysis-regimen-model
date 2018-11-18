@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-16 17:03:42
-# @Last Modified time: 2018-11-18 14:07:06
+# @Last Modified time: 2018-11-18 14:15:03
 import argparse
 import os
 import logging
@@ -167,7 +167,7 @@ def predict(path):
         final_output['flow'] = output_features['flow']
     final_output = final_output.round({'dweight': 1})
     final_output['flow'].fillna('other', inplace=True)
-    final_output.to_csv('predict_result.csv', index=False)
+    final_output.to_csv('test_data' + os.path.sep + 'result1.csv', index=False)
 
 
 if __name__ == "__main__":
