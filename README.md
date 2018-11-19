@@ -61,7 +61,7 @@
 ├── predict.py
 ├── README.md
 ├── sample_test_data.py 
-├── test_data
+└── test_data
     ├── example1.csv
     ├── example2.csv
     ├── label1.csv
