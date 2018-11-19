@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-16 10:10:15
-# @Last Modified time: 2018-11-18 18:59:40
+# @Last Modified time: 2018-11-19 10:45:13
 from sklearn import svm
 import pandas as pd
 from sklearn.metrics import confusion_matrix
@@ -34,24 +34,13 @@ class Model():
         X_train, X_test, Y_train, Y_test = train_test_split(
             X, Y, test_size=0.3)
 
-        model = svm.SVC(kernel='rbf', probability=True)
-        param_grid = {'C': [1e-3, 1e-2, 1e-1, 1, 10,
-                            100, 1000], 'gamma': [0.001, 0.0001]}
-        grid_search = GridSearchCV(
-            model, param_grid, n_jobs=8, cv=5)
-
-        grid_search.fit(X_train, Y_train.ravel())
-        best_parameters = grid_search.best_estimator_.get_params()
-
-        model = svm.SVC(kernel='rbf', C=best_parameters[
-            'C'], gamma=best_parameters['gamma'], probability=True)
-
-        if not os.path.exists(model_dir):
-            os.makedirs(model_dir)
+        model = svm.SVC(kernel='rbf', C=100, gamma=0.001)
 
         model.fit(X_train, Y_train.ravel())
         Y_predict = model.predict(X_test)
 
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
         joblib.dump(model, model_dir + os.path.sep + 'model.m')
 
         global res_dir
