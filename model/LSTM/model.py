@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author: LogicJake
 # @Date:   2018-11-12 09:41:22
-# @Last Modified time: 2018-11-18 20:48:14
+# @Last Modified time: 2018-11-20 10:06:23
 import os
 import time
 
@@ -22,7 +22,7 @@ model_dir = pwd + 'model' + os.path.sep
 res_dir = pwd + 'result' + os.path.sep
 
 
-PLOT = False
+PLOT = True
 
 LR = 0.01
 DECAY = 0.004
@@ -122,28 +122,30 @@ class LSTMModel(object):
             anti_num, kernel_initializer='normal', activation='sigmoid', name='anti')(lstm2)
         model = Model(inputs=input_laywer, outputs=[mm_output, anti_output])
 
-        optimizer = optimizers.Adam(lr=LR, beta_1=0.9,
-                                    beta_2=0.999, epsilon=1e-08, decay=DECAY)
-        model.compile(loss=['categorical_crossentropy',
-                            'categorical_crossentropy'], optimizer=optimizer, metrics=['accuracy'])
+        plot_model(model, 'model.png', show_shapes=True)
+        # optimizer = optimizers.Adam(lr=LR, beta_1=0.9,
+        #                             beta_2=0.999, epsilon=1e-08, decay=DECAY)
+        # model.compile(loss=['categorical_crossentropy',
+        #                     'categorical_crossentropy'], optimizer=optimizer, metrics=['accuracy'])
 
-        history = LossHistory()
-        model.fit(trainX, trainY, epochs=EPOCHS, batch_size=BS, validation_data=(
-            testX, testY), verbose=VERBOSE,  callbacks=[history])
+        # history = LossHistory()
+        # model.fit(trainX, trainY, epochs=EPOCHS, batch_size=BS, validation_data=(
+        #     testX, testY), verbose=VERBOSE,  callbacks=[history])
 
-        history.save_loss(PLOT, res_dir +
-                          self.id + os.path.sep)
-        self.model = model
-        self.history = history
+        # history.save_loss(PLOT, res_dir +
+        #                   self.id + os.path.sep)
+        # self.model = model
+        # self.history = history
 
-        mm_acc = history.mm_val_acc[-1]
-        anti_acc = history.anti_val_acc[-1]
-        self.save_model(model, mm_acc, anti_acc)
+        # mm_acc = history.mm_val_acc[-1]
+        # anti_acc = history.anti_val_acc[-1]
+        # self.save_model(model, mm_acc, anti_acc)
 
-        logger = get_logger()
-        logger.info(self.id + ': training over. mm acc: {' + str(mm_acc) + '}\tanti acc: {' + str(anti_acc) +
-                    '}\thyperparameters are ' + str(LR) + '\t' +
-                    str(DECAY) + '\t' + str(EPOCHS) + '\t' + str(BS) + '\t' + str(series_length))
+        # logger = get_logger()
+        # logger.info(self.id + ': training over. mm acc: {' + str(mm_acc) + '}\tanti acc: {' + str(anti_acc) +
+        #             '}\thyperparameters are ' + str(LR) + '\t' +
+        # str(DECAY) + '\t' + str(EPOCHS) + '\t' + str(BS) + '\t' +
+        # str(series_length))
 
     def split_Y(self, dataset):
         # split the output to two ndarray and put them in the array
